@@ -45,8 +45,8 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
 
 // geometry of the track, in SVG user units
 const P = {
-  laneY: [82, 64], laneStart: 190, beat: 130,
-  trap: i => [320, [82, 64][i]], drop: [336, 104], platformEnd: i => [450, [82, 64][i]], liftTop: i => [161, [82, 64][i]],
+  laneY: [82, 54], laneStart: 190, beat: 130,
+  trap: i => [320, [82, 54][i]], drop: [336, 104], platformEnd: i => [450, [82, 54][i]], liftTop: i => [161, [82, 54][i]],
   pocket: [[326, 156], [370, 156], [414, 156]], pocketExit: [[326, 236], [370, 236], [414, 236]],
   chute: [[300, 236], [284, 258]], ramp: i => [200 + 40 * i, 254],
   liftBottom: [161, 254], trayDrop: [500, 140], tray: i => [488 + 12 * i, 189], trayOut: [500, 262], replyFrom: [290, 160],
@@ -87,13 +87,13 @@ const TEMPLATE = (m) => `
       <path class="gate" d="M175 242 V272"/>
       <text x="161" y="308" text-anchor="middle" class="t ll-lift-label"></text>
 
-      <rect class="ll-beat" x="172" y="12" width="0" height="3" rx="1.5"/>
+      <rect class="ll-beat" x="172" y="14" width="0" height="3" rx="1.5"/>
       <g class="lane2">
-        <path d="M172 72 H320" class="rail-lit"/><path d="M342 72 H450" class="rail-lit"/>
-        <path d="M320 72 H342" class="rail-lit flap" data-lane="1" transform="rotate(0 320 72)"/>
-        <circle cx="320" cy="72" r="3" fill="var(--ll-ink)"/>
-        <path d="M190 75 v5 M320 75 v5 M450 75 v5" class="thin ruler"/>
-        <text x="214" y="62" class="t ll-lane2-label"></text>
+        <path d="M172 62 H320" class="rail-lit"/><path d="M342 62 H450" class="rail-lit"/>
+        <path d="M320 62 H342" class="rail-lit flap" data-lane="1" transform="rotate(0 320 62)"/>
+        <circle cx="320" cy="62" r="3" fill="var(--ll-ink)"/>
+        <path d="M190 65 v5 M320 65 v5 M450 65 v5" class="thin ruler"/>
+        <text x="214" y="38" class="t ll-lane2-label"></text>
       </g>
       <path d="M172 90 H320" class="rail-lit"/><path d="M342 90 H450" class="rail-lit"/>
       <path d="M320 90 H342" class="rail-lit flap" data-lane="0" transform="rotate(0 320 90)"/>
@@ -102,9 +102,11 @@ const TEMPLATE = (m) => `
 
       ${DEVICES}
 
-      <path d="M312 130 v28 a14 14 0 0 0 28 0 v-28" class="rail"/>
-      <path d="M356 130 v28 a14 14 0 0 0 28 0 v-28" class="rail"/>
-      <path d="M400 130 v28 a14 14 0 0 0 28 0 v-28" class="rail"/>
+      <path d="M312 130 v28 a14 14 0 0 0 28 0 v-28" class="rail pocket" data-p="0"/>
+      <path d="M356 130 v28 a14 14 0 0 0 28 0 v-28" class="rail pocket" data-p="1"/>
+      <path d="M400 130 v28 a14 14 0 0 0 28 0 v-28" class="rail pocket" data-p="2"/>
+      <text x="440" y="148" class="t tk">waiting</text>
+      <text x="440" y="162" class="t tk">on I/O</text>
       <circle cx="326" cy="116" r="6" class="ring"/><circle cx="326" cy="116" r="6" class="ring-fill" data-p="0" transform="rotate(-90 326 116)"/>
       <circle cx="370" cy="116" r="6" class="ring"/><circle cx="370" cy="116" r="6" class="ring-fill" data-p="1" transform="rotate(-90 370 116)"/>
       <circle cx="414" cy="116" r="6" class="ring"/><circle cx="414" cy="116" r="6" class="ring-fill" data-p="2" transform="rotate(-90 414 116)"/>
@@ -118,12 +120,13 @@ const TEMPLATE = (m) => `
 
       <path d="M560 262 H172" class="rail"/><path d="M184 256 L174 262 L184 268" class="thin"/>
       <text x="346" y="290" text-anchor="middle" class="t tk">runnable</text>
+      <text x="346" y="304" text-anchor="middle" class="t">waiting for a slot</text>
 
       <g class="ll-replies"></g><g class="ll-marbles"></g><g class="ll-words"></g>
     </svg>
     <div class="ll-trace-wrap">
       <svg class="ll-trace" viewBox="0 0 720 74" role="img" aria-label="Trace of the last ticks, one row per marble"></svg>
-      <div class="ll-tkey"><span>trace, one column per tick</span><span><i class="k-run"></i>running</span><span><i class="k-wait"></i>waiting for a reply</span><span><i class="k-ready"></i>ready, queued on the ramp</span><span><i class="k-end"></i>done</span><span>&#9662; runtime toggled</span></div>
+      <div class="ll-tkey"><span>trace, one column per tick</span><span><i class="k-run"></i>running</span><span><i class="k-wait"></i>waiting on I/O</span><span><i class="k-ready"></i>runnable, waiting for a slot</span><span><i class="k-end"></i>done</span><span>&#9662; runtime toggled</span></div>
     </div>
   </div>
   <p class="ll-caption"></p>
@@ -163,6 +166,10 @@ export function mount(host, M) {
     const c = el('circle', { r: 4, class: 'request' }); gR.appendChild(c); setPos(c, P.pocket[p]);
     if (reduced) { c.remove(); return; }
     tween(c, [P.replyFrom], ms, delay, () => c.remove(), reduced);
+  }
+  function landed(p, ms) {
+    const pk = host.querySelector(`.pocket[data-p="${p}"]`);
+    setTimeout(() => { pk.classList.add('landed'); setTimeout(() => pk.classList.remove('landed'), 900); }, ms);
   }
   function flap(lane, ms) {
     const f = host.querySelector(`.flap[data-lane="${lane}"]`); const cy = P.laneY[lane] + 8;
@@ -263,7 +270,7 @@ export function mount(host, M) {
         add(e.m, [P.liftBottom, P.liftTop(e.slot), [P.laneStart, P.laneY[e.slot]]]); lifted = true; phrases.push(`Lift raises ${nm}.`);
         glides.set(e.m.dots, { to: [P.laneStart + P.beat * M.skeleton[e.m.seg].ticks, P.laneY[e.slot]], ticks: M.skeleton[e.m.seg].ticks });
       }
-      else if (e.type === 'trap') { add(e.m, [P.trap(e.from), P.drop, P.pocket[e.pocket]]); flap(e.from, ms); request(e.pocket, Math.round(ms * 0.6), ms); phrases.push(`${cap(nm)} ${V.words.trap} and asks the outside world.`); }
+      else if (e.type === 'trap') { add(e.m, [P.trap(e.from), P.drop, P.pocket[e.pocket]]); flap(e.from, ms); landed(e.pocket, ms); request(e.pocket, Math.round(ms * 0.6), ms); phrases.push(`${cap(nm)} ${V.words.trap} and asks the outside world.`); }
       else if (e.type === 'ready') {
         reply(e.pocket, half);
         add(e.m, [P.pocketExit[e.pocket], P.chute[0], P.chute[1], P.ramp(Math.max(0, sim.ramp.indexOf(e.m)))], half);

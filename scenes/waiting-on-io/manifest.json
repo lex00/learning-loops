@@ -295,7 +295,7 @@
     "multiproc": {
       "label": "Python multiprocessing",
       "slots": 2,
-      "weight": 1.9,
+      "weight": 1.65,
       "preempt": true,
       "slotName": "a core",
       "liftName": "the OS scheduler",

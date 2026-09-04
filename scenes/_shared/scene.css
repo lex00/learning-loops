@@ -38,6 +38,8 @@ loop-scene svg { width: 100%; height: auto; display: block; }
 loop-scene .t { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 11px; fill: var(--ll-muted); }
 loop-scene .tk { fill: var(--ll-ink); }
 loop-scene .rail { stroke: var(--ll-track); stroke-width: 3; fill: none; }
+loop-scene .pocket { transition: stroke 500ms; }
+loop-scene .pocket.landed { stroke: var(--ll-marble); transition: stroke 120ms; }
 loop-scene .rail-lit { stroke: var(--ll-lit); stroke-width: 3; fill: none; transition: stroke 400ms; }
 loop-scene svg.idle .rail-lit { stroke: var(--ll-track); }
 loop-scene .thin { stroke: var(--ll-track); stroke-width: 1.5; fill: none; }
