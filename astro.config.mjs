@@ -5,11 +5,14 @@ import starlight from '@astrojs/starlight';
 export default defineConfig({
   site: 'https://lex00.github.io',
   base: '/learning-loops',
+  redirects: { '/': '/learning-loops/concurrency/waiting-on-io/' },
   integrations: [
     starlight({
       title: 'Learning Loops',
       description: 'Looping scenes that teach one programming concept at a time.',
       customCss: ['./src/styles/custom.css'],
+      pagefind: false,
+      components: { PageTitle: './src/components/PageTitle.astro' },
       head: [
         { tag: 'link', attrs: { rel: 'preconnect', href: 'https://fonts.googleapis.com' } },
         { tag: 'link', attrs: { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: true } },

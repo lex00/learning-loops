@@ -188,7 +188,7 @@
         ],
         "token": [
           "no lock",
-          "a P is a slot, not a lock. Two goroutines really do run at once."
+          "a P is a slot, not a lock. Two goroutines run at the same instant."
         ]
       }
     },
@@ -237,7 +237,7 @@
         ],
         "token": [
           "no lock",
-          "a worker thread is a slot, not a lock. Two tasks really do run at once."
+          "a worker thread is a slot, not a lock. Two tasks run at the same instant."
         ]
       }
     }

@@ -70,6 +70,16 @@ const DEVICES = `
       </g>`;
 
 const TEMPLATE = (m) => `
+  <div class="ll-controls">
+    <label class="ll-pick">runtime <select class="ll-variant" aria-label="Runtime">${m.variantOrder.map(k => `<option value="${k}">${esc(m.variants[k].label)}</option>`).join('')}</select></label>
+    <div class="ll-transport" role="group" aria-label="Playback">
+      <button type="button" class="ll-btn ll-play" aria-pressed="true"><span class="ll-glyph">&#10074;&#10074;</span>Pause</button>
+      <button type="button" class="ll-btn ll-step"><span class="ll-glyph">&#9654;&#10073;</span>Step</button>
+      <label class="ll-speed">speed <select class="ll-speedsel">${Object.entries(m.timing.periods).map(([k, v]) => `<option value="${v}"${k === m.timing.default ? ' selected' : ''}>${k}</option>`).join('')}</select></label>
+    </div>
+    <span class="ll-tick">tick 0</span>
+  </div>
+  <p class="ll-note"></p>
   <div class="ll-scene">
     <svg class="ll-svg" viewBox="80 8 520 324" role="img" aria-label="Marble run showing one unit of work giving up control at a wait point">
       <rect x="150" y="70" width="22" height="220" rx="4" class="thin"/>
@@ -117,16 +127,6 @@ const TEMPLATE = (m) => `
       <div class="ll-tkey"><span>trace, one column per tick</span><span><i class="k-run"></i>running</span><span><i class="k-wait"></i>waiting for a reply</span><span><i class="k-ready"></i>ready, queued on the ramp</span><span>&#9662; runtime toggled</span></div>
     </div>
   </div>
-  <div class="ll-controls">
-    <label class="ll-pick">runtime <select class="ll-variant" aria-label="Runtime">${m.variantOrder.map(k => `<option value="${k}">${esc(m.variants[k].label)}</option>`).join('')}</select></label>
-    <div class="ll-transport" role="group" aria-label="Playback">
-      <button type="button" class="ll-btn ll-play" aria-pressed="true"><span class="ll-glyph">&#10074;&#10074;</span>Pause</button>
-      <button type="button" class="ll-btn ll-step"><span class="ll-glyph">&#9654;&#10073;</span>Step</button>
-      <label class="ll-speed">speed <select class="ll-speedsel">${Object.entries(m.timing.periods).map(([k, v]) => `<option value="${v}"${k === m.timing.default ? ' selected' : ''}>${k}</option>`).join('')}</select></label>
-    </div>
-    <span class="ll-tick">tick 0</span>
-  </div>
-  <p class="ll-note"></p>
   <p class="ll-caption"></p>
   <div class="ll-legend"></div>
   <p class="ll-look">${esc(m.look)}</p>
