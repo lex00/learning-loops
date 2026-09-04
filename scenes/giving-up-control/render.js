@@ -4,7 +4,35 @@ import { Sim } from './sim.js';
 
 const NS = 'http://www.w3.org/2000/svg';
 const el = (tag, attrs = {}) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
-const tr = ([x, y]) => `translate(${x}px, ${y}px)`;
+// Positioning uses the SVG transform attribute driven by requestAnimationFrame, never CSS transforms:
+// WebKit applies CSS transforms on SVG children in screen pixels, not user units, once a viewBox scales the drawing.
+const active = new WeakMap();
+const easeInOut = t => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+function setPos(node, [x, y]) { node.setAttribute('transform', `translate(${x.toFixed(2)} ${y.toFixed(2)})`); node._pos = [x, y]; }
+function tween(node, points, ms, delay = 0, onDone, reduced = false) {
+  const prev = active.get(node); if (prev) cancelAnimationFrame(prev.raf);
+  const pts = [node._pos || points[0], ...points];
+  const lens = []; let total = 0;
+  for (let i = 1; i < pts.length; i++) { const d = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); lens.push(d); total += d; }
+  if (reduced || ms === 0 || total === 0) { setPos(node, points[points.length - 1]); if (onDone) onDone(); return; }
+  const t0 = performance.now() + delay, state = { raf: 0 };
+  const frame = now => {
+    const u = Math.min(1, Math.max(0, (now - t0) / ms));
+    const e = easeInOut(u) * total;
+    let acc = 0, i = 0; while (i < lens.length - 1 && acc + lens[i] < e) { acc += lens[i]; i++; }
+    const f = lens[i] ? Math.min(1, (e - acc) / lens[i]) : 1;
+    const a = pts[i], b = pts[i + 1];
+    setPos(node, [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f]);
+    if (u < 1) state.raf = requestAnimationFrame(frame); else { active.delete(node); if (onDone) onDone(); }
+  };
+  state.raf = requestAnimationFrame(frame); active.set(node, state);
+}
+function tweenScale(node, from, to, ms, reduced = false) {
+  if (reduced || ms === 0) { node.setAttribute('transform', `scale(${to})`); return; }
+  const t0 = performance.now();
+  const frame = now => { const u = Math.min(1, (now - t0) / ms); node.setAttribute('transform', `scale(${(from + (to - from) * easeInOut(u)).toFixed(3)})`); if (u < 1) requestAnimationFrame(frame); };
+  requestAnimationFrame(frame);
+}
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -34,7 +62,7 @@ const TEMPLATE = (m) => `
     <svg class="ll-svg" viewBox="80 8 520 324" role="img" aria-label="Marble run showing one unit of work giving up control at a wait point">
       <rect x="150" y="70" width="22" height="220" rx="4" class="thin"/>
       <path d="M161 282 V82" class="thin dash"/>
-      <rect class="carriage" x="152" y="262" width="18" height="6" rx="2"/>
+      <rect class="carriage" x="152" y="262" width="18" height="6" rx="2" transform="translate(0 0)"/>
       <g class="dial"><circle cx="161" cy="56" r="7" class="thin"/><path d="M161 56 V50" class="thin"/><path d="M161 56 L165 58" class="thin"/></g>
       <path class="gate" d="M175 242 V272"/>
       <text x="161" y="308" text-anchor="middle" class="t ll-lift-label"></text>
@@ -56,9 +84,9 @@ const TEMPLATE = (m) => `
       <path d="M312 130 v28 a14 14 0 0 0 28 0 v-28" class="rail"/>
       <path d="M356 130 v28 a14 14 0 0 0 28 0 v-28" class="rail"/>
       <path d="M400 130 v28 a14 14 0 0 0 28 0 v-28" class="rail"/>
-      <circle cx="326" cy="116" r="6" class="ring"/><circle cx="326" cy="116" r="6" class="ring-fill" data-p="0"/>
-      <circle cx="370" cy="116" r="6" class="ring"/><circle cx="370" cy="116" r="6" class="ring-fill" data-p="1"/>
-      <circle cx="414" cy="116" r="6" class="ring"/><circle cx="414" cy="116" r="6" class="ring-fill" data-p="2"/>
+      <circle cx="326" cy="116" r="6" class="ring"/><circle cx="326" cy="116" r="6" class="ring-fill" data-p="0" transform="rotate(-90 326 116)"/>
+      <circle cx="370" cy="116" r="6" class="ring"/><circle cx="370" cy="116" r="6" class="ring-fill" data-p="1" transform="rotate(-90 370 116)"/>
+      <circle cx="414" cy="116" r="6" class="ring"/><circle cx="414" cy="116" r="6" class="ring-fill" data-p="2" transform="rotate(-90 414 116)"/>
       <path d="M326 172 V236" class="thin"/><path d="M370 172 V236" class="thin"/><path d="M414 172 V236" class="thin"/>
       <path d="M300 236 H440" class="thin"/><path d="M300 236 L284 258" class="thin"/>
 
@@ -96,29 +124,23 @@ export function mount(host, M) {
     const g = el('g', { class: 'marble' }), body = el('g', { class: 'body' });
     body.appendChild(el('circle', { r: 7, class: 'm' }));
     for (const o of dotOffsets(d)) body.appendChild(el('circle', { cx: o, r: 1.5, class: 'd' }));
-    g.appendChild(body); gM.appendChild(g); g.style.transform = tr(P.ramp(d - 1)); els[d] = g;
+    g.appendChild(body); gM.appendChild(g); setPos(g, P.ramp(d - 1)); body.setAttribute('transform', 'scale(1)'); els[d] = g;
   }
-  function move(node, points, ms, delay = 0) {
-    const last = tr(points[points.length - 1]);
-    if (reduced || ms === 0) { node.style.transform = last; return; }
-    const frames = [{ transform: node.style.transform || tr(points[0]) }, ...points.map(p => ({ transform: tr(p) }))];
-    const a = node.animate(frames, { duration: ms, delay, easing: 'ease-in-out', fill: 'forwards' });
-    a.onfinish = () => { node.style.transform = last; a.cancel(); };
-  }
+  let scaleNow = 1;
+  const move = (node, points, ms, delay = 0) => tween(node, points, ms, delay, null, reduced);
   function liftAct(ms) {
     if (reduced) return;
-    const a = carriage.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-172px)', offset: 0.45 }, { transform: 'translateY(-172px)', offset: 0.6 }, { transform: 'translateY(0)' }], { duration: ms * 2.2, easing: 'ease-in-out' });
-    a.onfinish = () => a.cancel();
+    setPos(carriage, [0, 0]);
+    tween(carriage, [[0, -172], [0, 0]], ms * 2.2, 0, null, reduced);
   }
   function word(text, [x, y], cls = '', anchor = 'middle') {
     const t = el('text', { x, y, 'text-anchor': anchor, class: `word ${cls}` }); t.textContent = text;
     t.addEventListener('animationend', () => t.remove()); gW.appendChild(t);
   }
   function reply(p, ms) {
-    const c = el('circle', { r: 5, class: 'reply' }); c.style.transform = tr(P.replyFrom); gR.appendChild(c);
+    const c = el('circle', { r: 5, class: 'reply' }); gR.appendChild(c); setPos(c, P.replyFrom);
     if (reduced) { c.remove(); return; }
-    const a = c.animate([{ transform: tr(P.replyFrom) }, { transform: tr(P.pocket[p]) }], { duration: ms, easing: 'ease-in', fill: 'forwards' });
-    a.onfinish = () => c.remove();
+    tween(c, [P.pocket[p]], ms, 0, () => c.remove(), reduced);
   }
   const CIRC = 2 * Math.PI * 6;
   function rings(sim) {
@@ -169,7 +191,8 @@ export function mount(host, M) {
     $('.lane2').classList.toggle('on', V.slots === 2);
     $('.dial').classList.toggle('on', V.preempt);
     $('.ll-note').textContent = V.note;
-    for (let d = 1; d <= M.marbles; d++) els[d].querySelector('.body').style.transform = `scale(${V.weight})`;
+    for (let d = 1; d <= M.marbles; d++) tweenScale(els[d].querySelector('.body'), scaleNow, V.weight, fromToggle ? 400 : 0, reduced);
+    scaleNow = V.weight;
     renderLegend();
     if (fromToggle) { pendingToggle = true; render(sim.setSlots(V.slots), true); }
   }

@@ -45,23 +45,21 @@ loop-scene svg.idle .lane2.on .rail-lit { stroke: var(--ll-track); }
 loop-scene .lane2 circle { opacity: 0; transition: opacity 400ms; }
 loop-scene .lane2.on circle { opacity: 1; }
 loop-scene .ring { fill: none; stroke: var(--ll-track); stroke-width: 2; }
-loop-scene .ring-fill { fill: none; stroke: var(--ll-marble); stroke-width: 2; transition: stroke-dashoffset 400ms; transform: rotate(-90deg); transform-box: fill-box; transform-origin: center; }
+loop-scene .ring-fill { fill: none; stroke: var(--ll-marble); stroke-width: 2; transition: stroke-dashoffset 400ms; }
 loop-scene .gate { stroke: var(--ll-stall); stroke-width: 3; fill: none; opacity: 0; transition: opacity 300ms; }
 loop-scene svg.held .gate { opacity: 1; }
 loop-scene .carriage { fill: var(--ll-track); transition: fill 300ms; }
 loop-scene svg.held .carriage { fill: var(--ll-stall); }
 loop-scene .dial { opacity: 0; transition: opacity 400ms; }
 loop-scene .dial.on { opacity: 1; }
-loop-scene .marble { will-change: transform; }
-loop-scene .marble .body { transition: transform 400ms; }
 loop-scene .marble circle.m { fill: var(--ll-marble); transition: fill 300ms; }
 loop-scene .marble.lit circle.m { fill: var(--ll-lit); }
 loop-scene .marble circle.d { fill: var(--ll-ground); }
 loop-scene .word { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 12px; font-weight: 500; fill: var(--ll-lit); animation: ll-wordfade var(--ll-wordms, 1200ms) ease-out forwards; }
 loop-scene .word.hold { fill: var(--ll-stall); }
 loop-scene .reply { fill: var(--ll-marble); stroke: var(--ll-ground); stroke-width: 1.5; }
-@keyframes ll-wordfade { 0% { opacity: 0; transform: translateY(4px); } 15% { opacity: 1; transform: translateY(0); } 75% { opacity: 1; } 100% { opacity: 0; transform: translateY(-6px); } }
-@media (prefers-reduced-motion: reduce) { loop-scene .marble .body, loop-scene .ring-fill, loop-scene .rail-lit { transition: none; } }
+@keyframes ll-wordfade { 0% { opacity: 0; } 15% { opacity: 1; } 75% { opacity: 1; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { loop-scene .ring-fill, loop-scene .rail-lit { transition: none; } }
 
 loop-scene .ll-trace-wrap { border-top: 1px solid var(--ll-rule); padding-top: 6px; }
 loop-scene .cell-run { fill: var(--ll-lit); }
