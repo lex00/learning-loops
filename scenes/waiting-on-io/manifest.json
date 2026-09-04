@@ -5,7 +5,7 @@
   "order": 1,
   "lede": "A marble reaches a point where it needs something from outside, a network response say, and cannot go on until it arrives. It leaves the running platform and another marble runs. Toggle the runtime. The scene keeps going.",
   "misconception": "My three tasks run at the same time. In asyncio and in Python threads, exactly one marble is ever on the platform. Progress comes from waits overlapping, never from runs overlapping. Go and tokio widen the platform, and even there marbles queue when the slots are full.",
-  "look": "Stare at the beat where a reply lands while every slot is taken. The gate turns red and the lift holds. Two things separate the four runtimes here, how many slots the platform has and whether the lift has a dial.",
+  "look": "Stare at the beat where a reply lands while every slot is taken. The gate turns red and the lift holds. Two things separate the four runtimes here, how many slots the platform has and whether a claw hangs over it.",
   "marbles": 3,
   "names": [
     "one-dot",
@@ -52,7 +52,7 @@
       "slotName": "the GIL",
       "liftName": "the OS scheduler",
       "lane2": "no second lane",
-      "note": "One slot because there is one lock. The padlock is the GIL, only its holder runs Python, and the dial is the OS clock, always ticking.",
+      "note": "One slot because there is one lock. The padlock is the GIL and only its holder runs Python. The claw is the OS clock, and it can take a thread off the platform when its slice ends.",
       "words": {
         "trap": "blocks",
         "ready": "runnable",
@@ -102,7 +102,7 @@
       "slotName": "the loop",
       "liftName": "the event loop",
       "lane2": "no second lane",
-      "note": "One slot, no lock, and no clock. The loop just runs the next ready task. Same schedule as threads here, but nothing is being handed around.",
+      "note": "One slot, no lock, and no claw. The loop just runs the next ready task. Same schedule as threads here, but nothing is handed around and nothing can be taken away.",
       "words": {
         "trap": "await",
         "ready": "ready",
@@ -151,7 +151,7 @@
       "slotName": "a P",
       "liftName": "the runtime scheduler",
       "lane2": "a second P",
-      "note": "Two slots, and a dial on the lift, so the runtime can take a goroutine off a P on a timer.",
+      "note": "Two slots and a claw. The runtime can take a goroutine off a P when its slice ends.",
       "words": {
         "trap": "parks",
         "ready": "runnable",
@@ -200,7 +200,7 @@
       "slotName": "a worker thread",
       "liftName": "the tokio runtime",
       "lane2": "a second worker",
-      "note": "Two slots and no dial, so tokio cannot interrupt a task. It runs the same schedule as Go in this scene, and the dial is the whole difference.",
+      "note": "Two slots and no claw. Tokio cannot take a task off a worker. Same schedule as Go here, and the claw is the whole difference.",
       "words": {
         "trap": "pending",
         "ready": "woken",

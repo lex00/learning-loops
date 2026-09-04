@@ -85,7 +85,6 @@ const TEMPLATE = (m) => `
       <rect x="150" y="70" width="22" height="220" rx="4" class="thin"/>
       <path d="M161 282 V82" class="thin dash"/>
       <rect class="carriage" x="152" y="262" width="18" height="6" rx="2" transform="translate(0 0)"/>
-      <g class="dial"><circle cx="161" cy="56" r="7" class="thin"/><path class="thin hand" d="M161 56 V50" transform="rotate(0 161 56)"/><path d="M161 56 L165 58" class="thin"/></g>
       <path class="thin ll-hook" d="M150 96 H136"/>
       <g class="ll-token" transform="translate(128 96)"><path class="shackle" d="M-4 -3 a4 4 0 0 1 8 0 V0"/><rect x="-8.5" y="0" width="17" height="10" rx="2"/><text y="7.6" text-anchor="middle">GIL</text></g>
       <path class="gate" d="M175 242 V272"/>
@@ -96,6 +95,11 @@ const TEMPLATE = (m) => `
         <path d="M330 72 H352" class="rail-lit flap" data-lane="1" transform="rotate(0 330 72)"/>
         <circle cx="330" cy="72" r="3" fill="var(--ll-ink)"/>
         <text x="214" y="62" class="t ll-lane2-label"></text>
+      </g>
+      <g class="claw">
+        <path d="M372 30 H448" class="thin"/>
+        <circle cx="384" cy="30" r="7" class="thin"/><path class="thin hand" d="M384 30 V24" transform="rotate(0 384 30)"/>
+        <path d="M410 30 V46" class="thin"/><path d="M402 46 H418" class="thin"/><path d="M402 46 V54" class="thin"/><path d="M418 46 V54" class="thin"/>
       </g>
       <path d="M172 90 H330" class="rail-lit"/><path d="M352 90 H450" class="rail-lit"/>
       <path d="M330 90 H352" class="rail-lit flap" data-lane="0" transform="rotate(0 330 90)"/>
@@ -221,7 +225,7 @@ export function mount(host, M) {
     $('.ll-lift-label').textContent = V.liftName;
     $('.ll-lane2-label').textContent = V.lane2;
     $('.lane2').classList.toggle('on', V.slots === 2);
-    $('.dial').classList.toggle('on', V.preempt);
+    $('.claw').classList.toggle('on', V.preempt);
     spinDial(V.preempt);
     const token = $('.ll-token'); token.classList.toggle('on', !!V.token); $('.ll-hook').classList.toggle('on', !!V.token);
     if (V.token) { const m = sim.slots[0]; setPos(token, m && els[m.dots]._pos ? lift(els[m.dots]._pos) : P.hook); }
@@ -241,7 +245,7 @@ export function mount(host, M) {
       ['Lock', g.token],
       ['Pocket ring', ['', 'counts ticks until the reply lands.']],
       ['Red gate', ['', 'a marble is ready and every slot is taken. The lift holds until the running marble leaves.']],
-      ['Dial', ['', V.preempt ? 'this lift can take a running marble off the platform on a timer. It never needs to in this scene, because every marble reaches the wait point. The next scene is where it matters.' : 'this lift has no dial. A marble leaves the platform only when it reaches the wait point. If it never did, nothing could remove it.']],
+      ['Claw', ['', V.preempt ? 'the scheduler\'s clock hangs over the platform. When a running marble\'s time slice ends, the claw can lift it off and put it back on the ramp. In this scene every marble leaves before that happens. The next scene is where the claw comes down.' : 'no claw. Nothing can take a marble off the platform. It leaves only when it reaches the wait point, and if it never did, nothing could remove it.']],
     ];
     $('.ll-legend').innerHTML = rows.map(([k, [w, gl]]) => `<span class="k">${esc(k)}</span><span>${w ? `<span class="w">${esc(w)}</span> ` : ''}<span class="g">${esc(gl)}</span></span>`).join('');
   }
@@ -300,9 +304,9 @@ export function mount(host, M) {
 
   let dialRaf = 0;
   function spinDial(on) {
-    cancelAnimationFrame(dialRaf); const hand = $('.dial .hand');
-    if (!on || reduced) { hand.setAttribute('transform', 'rotate(0 161 56)'); return; }
-    const frame = now => { hand.setAttribute('transform', `rotate(${((now % period) / period * 360).toFixed(1)} 161 56)`); dialRaf = requestAnimationFrame(frame); };
+    cancelAnimationFrame(dialRaf); const hand = $('.claw .hand');
+    if (!on || reduced) { hand.setAttribute('transform', 'rotate(0 384 30)'); return; }
+    const frame = now => { hand.setAttribute('transform', `rotate(${((now % period) / period * 360).toFixed(1)} 384 30)`); dialRaf = requestAnimationFrame(frame); };
     dialRaf = requestAnimationFrame(frame);
   }
   function tickOnce() { render(sim.step()); }
