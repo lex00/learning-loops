@@ -1,6 +1,6 @@
 {
-  "slug": "giving-up-control",
-  "title": "Giving Up Control",
+  "slug": "waiting-on-io",
+  "title": "Waiting on I/O",
   "topic": "concurrency",
   "order": 1,
   "lede": "A marble reaches a point where it needs something from outside, a network response say, and cannot go on until it arrives. It leaves the running platform and another marble runs. Toggle the runtime. The scene keeps going.",
@@ -47,12 +47,12 @@
     "threads": {
       "label": "Python threads",
       "slots": 1,
-      "weight": 1.4,
+      "weight": 1.5,
       "preempt": true,
       "slotName": "the GIL",
       "liftName": "the OS scheduler",
       "lane2": "no second lane",
-      "note": "One slot, and a dial on the lift, so the OS can take a thread off the platform on a timer.",
+      "note": "One slot because there is one lock. The padlock is the GIL, only its holder runs Python, and the dial is the OS clock, always ticking.",
       "words": {
         "trap": "blocks",
         "ready": "runnable",
@@ -86,8 +86,13 @@
         "done": [
           "exits",
           "the thread function returned."
+        ],
+        "token": [
+          "the padlock",
+          "the GIL, drawn as a lock. The marble carrying it is the one running Python. It hands the lock back to the hook when it blocks, and the next marble takes it on the way up."
         ]
-      }
+      },
+      "token": "GIL"
     },
     "asyncio": {
       "label": "Python asyncio",
@@ -97,7 +102,7 @@
       "slotName": "the loop",
       "liftName": "the event loop",
       "lane2": "no second lane",
-      "note": "One slot and no dial, so the loop cannot interrupt a task. It runs the same schedule as threads in this scene.",
+      "note": "One slot, no lock, and no clock. The loop just runs the next ready task. Same schedule as threads here, but nothing is being handed around.",
       "words": {
         "trap": "await",
         "ready": "ready",
@@ -131,6 +136,10 @@
         "done": [
           "done",
           "the coroutine returned."
+        ],
+        "token": [
+          "no lock",
+          "there is nothing to hand around. The loop runs one task, and when that task awaits, the loop runs the next ready one."
         ]
       }
     },
@@ -176,6 +185,10 @@
         "done": [
           "returns",
           "the goroutine's function returned."
+        ],
+        "token": [
+          "no lock",
+          "a P is a slot, not a lock. Two goroutines really do run at once."
         ]
       }
     },
@@ -221,6 +234,10 @@
         "done": [
           "completes",
           "the future returned Poll::Ready with its value."
+        ],
+        "token": [
+          "no lock",
+          "a worker thread is a slot, not a lock. Two tasks really do run at once."
         ]
       }
     }

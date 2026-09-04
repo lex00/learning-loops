@@ -27,7 +27,7 @@ npm test               level 1: every scene's state machine against its manifest
 npm run build          static site into dist/
 npm run validate:dom   level 2: render each scene and runtime in headless Chrome and diff the trace strip
 npm run validate       all of the above
-npm run shot -- giving-up-control go 5    screenshot a scene at a tick
+npm run shot -- waiting-on-io go 5    screenshot a scene at a tick
 npm run lint           prose lint of pages, manifests, and this file with the sentences de-stink rules
 ```
 

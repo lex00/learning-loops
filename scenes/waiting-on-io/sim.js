@@ -1,4 +1,4 @@
-// The state machine for "Giving Up Control". Knows nothing about drawing.
+// The state machine for "Waiting on I/O". Knows nothing about drawing.
 // Marbles follow the manifest's skeleton; the variant supplies only the slot count.
 export class Sim {
   constructor(manifest, slotCount) {

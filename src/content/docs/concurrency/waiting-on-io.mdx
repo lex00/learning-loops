@@ -1,5 +1,5 @@
 ---
-title: Giving Up Control
+title: Waiting on I/O
 description: A unit of work reaches a point where it needs a reply from outside, leaves the running platform, and another runs. Python threads, Python asyncio, Go, and Rust tokio on one track.
 sidebar:
   order: 1
@@ -8,7 +8,7 @@ sidebar:
 import LoopScene from '../../../components/LoopScene.astro';
 import VariantTable from '../../../components/VariantTable.astro';
 
-<LoopScene scene="giving-up-control" />
+<LoopScene scene="waiting-on-io" />
 
 ## The lesson
 
@@ -20,7 +20,7 @@ import VariantTable from '../../../components/VariantTable.astro';
 
 Every row is a real property of the runtime, not a metaphor. The slot is named for the thing that admits a marble to run. The words are the ones each runtime's own docs and source use.
 
-<VariantTable scene="giving-up-control" />
+<VariantTable scene="waiting-on-io" />
 
 Threads and asyncio produce the same schedule in this scene. That is deliberate and true: for work that only waits on replies, one slot is one slot. Go and tokio also share a schedule here. What separates the pairs is the dial on the lift: whether the scheduler can take a running marble off the platform without being asked. Nothing in this scene needs it, because every marble reaches the wait point. The next scene is where it matters.
 

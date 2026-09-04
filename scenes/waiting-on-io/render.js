@@ -1,4 +1,4 @@
-// Renderer for "Giving Up Control". Draws the marble run from the Sim; all vocabulary comes from the manifest.
+// Renderer for "Waiting on I/O". Draws the marble run from the Sim; all vocabulary comes from the manifest.
 import { register } from '../_shared/loop-scene.js';
 import { Sim } from './sim.js';
 
@@ -15,8 +15,10 @@ function tween(node, points, ms, delay = 0, onDone, reduced = false) {
   const lens = []; let total = 0;
   for (let i = 1; i < pts.length; i++) { const d = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); lens.push(d); total += d; }
   if (reduced || ms === 0 || total === 0) { setPos(node, points[points.length - 1]); if (onDone) onDone(); return; }
-  const t0 = performance.now() + delay, state = { raf: 0 };
+  // the start time comes from the first frame's own timestamp, never performance.now(): the two clocks can differ
+  let t0 = null; const state = { raf: 0 };
   const frame = now => {
+    if (t0 === null) t0 = now + delay;
     const u = Math.min(1, Math.max(0, (now - t0) / ms));
     const e = easeInOut(u) * total;
     let acc = 0, i = 0; while (i < lens.length - 1 && acc + lens[i] < e) { acc += lens[i]; i++; }
@@ -29,14 +31,14 @@ function tween(node, points, ms, delay = 0, onDone, reduced = false) {
 }
 function tweenAngle(node, cx, cy, from, to, ms, delay = 0, reduced = false) {
   if (reduced || ms === 0) { node.setAttribute('transform', `rotate(${to} ${cx} ${cy})`); return; }
-  const t0 = performance.now() + delay;
-  const frame = now => { const u = Math.min(1, Math.max(0, (now - t0) / ms)); node.setAttribute('transform', `rotate(${(from + (to - from) * easeInOut(u)).toFixed(2)} ${cx} ${cy})`); if (u < 1) requestAnimationFrame(frame); };
+  let t0 = null;
+  const frame = now => { if (t0 === null) t0 = now + delay; const u = Math.min(1, Math.max(0, (now - t0) / ms)); node.setAttribute('transform', `rotate(${(from + (to - from) * easeInOut(u)).toFixed(2)} ${cx} ${cy})`); if (u < 1) requestAnimationFrame(frame); };
   requestAnimationFrame(frame);
 }
 function tweenScale(node, from, to, ms, reduced = false) {
   if (reduced || ms === 0) { node.setAttribute('transform', `scale(${to})`); return; }
-  const t0 = performance.now();
-  const frame = now => { const u = Math.min(1, (now - t0) / ms); node.setAttribute('transform', `scale(${(from + (to - from) * easeInOut(u)).toFixed(3)})`); if (u < 1) requestAnimationFrame(frame); };
+  let t0 = null;
+  const frame = now => { if (t0 === null) t0 = now; const u = Math.min(1, (now - t0) / ms); node.setAttribute('transform', `scale(${(from + (to - from) * easeInOut(u)).toFixed(3)})`); if (u < 1) requestAnimationFrame(frame); };
   requestAnimationFrame(frame);
 }
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
@@ -49,7 +51,9 @@ const P = {
   pocket: [[326, 156], [370, 156], [414, 156]], pocketExit: [[326, 236], [370, 236], [414, 236]],
   chute: [[300, 236], [284, 258]], ramp: i => [200 + 40 * i, 254],
   liftBottom: [161, 254], trayDrop: [500, 140], tray: i => [488 + 12 * i, 189], trayOut: [500, 262], replyFrom: [290, 160],
+  hook: [128, 96], tokenLift: [0, -14],
 };
+const lift = ([x, y]) => [x + P.tokenLift[0], y + P.tokenLift[1]];
 // where a running marble sits on its lane after k ticks of its run segment: the first run ends at the trapdoor, the second crosses it
 const RUN_X = { 0: [190], 2: [190, 390] };
 
@@ -71,7 +75,9 @@ const TEMPLATE = (m) => `
       <rect x="150" y="70" width="22" height="220" rx="4" class="thin"/>
       <path d="M161 282 V82" class="thin dash"/>
       <rect class="carriage" x="152" y="262" width="18" height="6" rx="2" transform="translate(0 0)"/>
-      <g class="dial"><circle cx="161" cy="56" r="7" class="thin"/><path d="M161 56 V50" class="thin"/><path d="M161 56 L165 58" class="thin"/></g>
+      <g class="dial"><circle cx="161" cy="56" r="7" class="thin"/><path class="thin hand" d="M161 56 V50" transform="rotate(0 161 56)"/><path d="M161 56 L165 58" class="thin"/></g>
+      <path class="thin ll-hook" d="M150 96 H136"/>
+      <g class="ll-token" transform="translate(128 96)"><path class="shackle" d="M-4 -3 a4 4 0 0 1 8 0 V0"/><rect x="-8.5" y="0" width="17" height="10" rx="2"/><text y="7.6" text-anchor="middle">GIL</text></g>
       <path class="gate" d="M175 242 V272"/>
       <text x="161" y="308" text-anchor="middle" class="t ll-lift-label"></text>
 
@@ -79,7 +85,7 @@ const TEMPLATE = (m) => `
         <path d="M172 72 H330" class="rail-lit"/><path d="M352 72 H450" class="rail-lit"/>
         <path d="M330 72 H352" class="rail-lit flap" data-lane="1" transform="rotate(0 330 72)"/>
         <circle cx="330" cy="72" r="3" fill="var(--ll-ink)"/>
-        <text x="178" y="62" class="t ll-lane2-label"></text>
+        <text x="214" y="62" class="t ll-lane2-label"></text>
       </g>
       <path d="M172 90 H330" class="rail-lit"/><path d="M352 90 H450" class="rail-lit"/>
       <path d="M330 90 H352" class="rail-lit flap" data-lane="0" transform="rotate(0 330 90)"/>
@@ -216,6 +222,9 @@ export function mount(host, M) {
     $('.ll-lane2-label').textContent = V.lane2;
     $('.lane2').classList.toggle('on', V.slots === 2);
     $('.dial').classList.toggle('on', V.preempt);
+    spinDial(V.preempt);
+    const token = $('.ll-token'); token.classList.toggle('on', !!V.token); $('.ll-hook').classList.toggle('on', !!V.token);
+    if (V.token) { const m = sim.slots[0]; setPos(token, m && els[m.dots]._pos ? lift(els[m.dots]._pos) : P.hook); }
     $('.ll-note').textContent = V.note;
     for (let d = 1; d <= M.marbles; d++) tweenScale(els[d].querySelector('.body'), scaleNow, V.weight, fromToggle ? 400 : 0, reduced);
     scaleNow = V.weight;
@@ -229,6 +238,7 @@ export function mount(host, M) {
       ['At the trapdoor', g.trap], ['When the reply lands', g.ready],
       ['On the platform', ['', g.run[1] + ' No word fires here: the green marble travelling along its lane says it.']],
       ['Into the tray', g.done],
+      ['Lock', g.token],
       ['Pocket ring', ['', 'counts ticks until the reply lands.']],
       ['Red gate', ['', 'a marble is ready and every slot is taken. The lift holds until the running marble leaves.']],
       ['Dial', ['', V.preempt ? 'this lift can take a running marble off the platform on a timer. It never needs to in this scene, because every marble reaches the wait point. The next scene is where it matters.' : 'this lift has no dial. A marble leaves the platform only when it reaches the wait point. If it never did, nothing could remove it.']],
@@ -241,8 +251,12 @@ export function mount(host, M) {
     const phrases = [];
     const paths = new Map();
     const add = (m, pts, delay = 0) => { const cur = paths.get(m.dots); if (cur) cur.points.push(...pts); else paths.set(m.dots, { points: pts, delay }); };
-    let readyHeld = false, lifted = false;
+    let readyHeld = false, lifted = false, tokenPath = null;
     for (const e of ev) {
+      if (V.token) {
+        if (e.type === 'run' && e.slot === 0) tokenPath = [lift(P.liftTop(0)), lift([P.laneStart, P.laneY[0]])];
+        else if ((e.type === 'trap' || e.type === 'done') && e.from === 0) tokenPath = [P.hook];
+      }
       const nm = e.m ? NAMES[e.m.dots - 1] : '';
       if (e.type === 'run') { add(e.m, [P.liftBottom, P.liftTop(e.slot), [P.laneStart, P.laneY[e.slot]]]); lifted = true; phrases.push(`Lift raises ${nm}.`); }
       else if (e.type === 'trap') { add(e.m, [P.trap(e.from), P.drop, P.pocket[e.pocket]]); flap(e.from, ms); request(e.pocket, Math.round(ms * 0.6), ms); phrases.push(`${cap(nm)} ${V.words.trap} and asks the outside world.`); }
@@ -264,6 +278,11 @@ export function mount(host, M) {
     }
     for (const m of sim.ramp) if (held0 && !ev.some(e => e.m === m)) phrases.push(`${cap(NAMES[m.dots - 1])} waits for a slot.`);
     for (const [dots, { points, delay }] of paths) move(els[dots], points, ms, delay);
+    if (V.token) {
+      const m0 = sim.slots[0];
+      if (!tokenPath && m0 && paths.has(m0.dots)) tokenPath = paths.get(m0.dots).points.map(lift);
+      if (tokenPath) move($('.ll-token'), tokenPath, ms);
+    }
     if (lifted) liftAct(ms);
     for (let d = 1; d <= M.marbles; d++) els[d].classList.toggle('lit', sim.slots.some(m => m && m.dots === d));
     rings(sim);
@@ -279,6 +298,13 @@ export function mount(host, M) {
   }
   const numberWord = n => ['zero', 'one', 'two', 'three', 'four', 'five', 'six'][n] || String(n);
 
+  let dialRaf = 0;
+  function spinDial(on) {
+    cancelAnimationFrame(dialRaf); const hand = $('.dial .hand');
+    if (!on || reduced) { hand.setAttribute('transform', 'rotate(0 161 56)'); return; }
+    const frame = now => { hand.setAttribute('transform', `rotate(${((now % period) / period * 360).toFixed(1)} 161 56)`); dialRaf = requestAnimationFrame(frame); };
+    dialRaf = requestAnimationFrame(frame);
+  }
   function tickOnce() { render(sim.step()); }
   function start() { stop(); host.style.setProperty('--ll-wordms', Math.round(period * M.timing.wordFraction) + 'ms'); if (playing && visible) timer = setInterval(tickOnce, period); }
   function stop() { if (timer) { clearInterval(timer); timer = null; } }
@@ -299,4 +325,4 @@ export function mount(host, M) {
   start();
 }
 
-register('giving-up-control', mount);
+register('waiting-on-io', mount);

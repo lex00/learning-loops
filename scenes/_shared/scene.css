@@ -55,6 +55,13 @@ loop-scene .carriage { fill: var(--ll-track); transition: fill 300ms; }
 loop-scene svg.held .carriage { fill: var(--ll-stall); }
 loop-scene .dial { opacity: 0; transition: opacity 400ms; }
 loop-scene .dial.on { opacity: 1; }
+loop-scene .ll-hook { opacity: 0; transition: opacity 300ms; }
+loop-scene .ll-hook.on { opacity: 1; }
+loop-scene .ll-token { opacity: 0; transition: opacity 300ms; }
+loop-scene .ll-token.on { opacity: 1; }
+loop-scene .ll-token rect { fill: var(--ll-ground); stroke: var(--ll-ink); stroke-width: 1.5; }
+loop-scene .ll-token .shackle { fill: none; stroke: var(--ll-ink); stroke-width: 1.5; }
+loop-scene .ll-token text { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 6.5px; font-weight: 500; fill: var(--ll-ink); }
 loop-scene .marble circle.m { fill: var(--ll-marble); transition: fill 300ms; }
 loop-scene .marble.lit circle.m { fill: var(--ll-lit); }
 loop-scene .marble circle.d { fill: var(--ll-ground); }

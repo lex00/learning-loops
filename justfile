@@ -29,8 +29,8 @@ validate-dom:
 validate:
     npm run validate
 
-# screenshot a scene at a tick: just shot giving-up-control go 5
-shot slug="giving-up-control" variant="asyncio" tick="5":
+# screenshot a scene at a tick: just shot waiting-on-io go 5
+shot slug="waiting-on-io" variant="asyncio" tick="5":
     npm run shot -- {{slug}} {{variant}} {{tick}}
 
 # serve the built site the way Pages will, under the base path

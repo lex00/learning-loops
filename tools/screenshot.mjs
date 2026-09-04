@@ -4,7 +4,7 @@ import { promisify } from 'node:util';
 const run = promisify(execFile);
 import { loadManifest, pageUrl } from './_scenes.mjs';
 import { serveDist, CHROME } from './_serve.mjs';
-const [slug = 'giving-up-control', v = 'asyncio', tick = '5', out = `shot-${slug}-${v}-${tick}.png`] = process.argv.slice(2);
+const [slug = 'waiting-on-io', v = 'asyncio', tick = '5', out = `shot-${slug}-${v}-${tick}.png`] = process.argv.slice(2);
 const M = loadManifest(slug);
 const server = await serveDist();
 try {
