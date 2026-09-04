@@ -35,7 +35,7 @@ Level 2 and the screenshot helper use the installed Google Chrome on macOS; set 
 
 ## Adding a runtime to a scene
 
-Add an entry to `variants` in the manifest with its slots, dial, words, and glossary, and list it in `variantOrder`. No code changes.
+Add an entry under `variants` in the manifest, list it in `variantOrder`, and give it the same fields as its neighbours. No code changes.
 
 ## Adding a scene
 
