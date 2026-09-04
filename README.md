@@ -38,4 +38,4 @@ Copy a scene directory, write its manifest and beat tables first, then its state
 
 ## Publishing
 
-Pushing to `main` runs `.github/workflows/deploy.yml`: tests, build, rendered validation in the runner's Chrome, then deploy to GitHub Pages. The site is configured for `https://intentius.io/learning-loops`, which is the project-site path under the lex00 user site's custom domain; until that domain is attached to `lex00.github.io`, the same build is reachable at `https://lex00.github.io/learning-loops/`.
+Pushing to `main` runs `.github/workflows/deploy.yml`: tests, build, rendered validation in the runner's Chrome, then deploy to GitHub Pages. The site lives at https://lex00.github.io/learning-loops/.

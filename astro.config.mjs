@@ -3,7 +3,7 @@ import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 
 export default defineConfig({
-  site: 'https://intentius.io',
+  site: 'https://lex00.github.io',
   base: '/learning-loops',
   integrations: [
     starlight({
