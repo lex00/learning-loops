@@ -18,7 +18,7 @@ try {
       const { stdout: dom } = await run(CHROME, ['--headless=new', '--disable-gpu', '--no-first-run', '--window-size=1000,900', `--virtual-time-budget=${period * 10 + 200}`, '--dump-dom', url], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
       const start = dom.indexOf('class="ll-trace"');
       const trace = dom.slice(start, dom.indexOf('</svg>', start));
-      const rects = [...trace.matchAll(/<rect x="(\d+)" y="(\d+)"[^>]*class="cell-(\w+)[^"]*"/g)].map(m => ({ col: (m[1] - 40) / 27, row: { 10: 0, 32: 1, 54: 2 }[m[2]], state: m[3] }));
+      const rects = [...trace.matchAll(/<rect x="(\d+)" y="(\d+)"[^>]*class="cell-(run|wait|ready)[^"]*"/g)].map(m => ({ col: (m[1] - 40) / 27, row: { 10: 0, 32: 1, 54: 2 }[m[2]], state: m[3] }));
       const cols = Math.max(-1, ...rects.map(r => r.col)) + 1;
       const rendered = Array.from({ length: cols }, () => Array(M.marbles).fill(null));
       for (const r of rects) rendered[r.col][r.row] = r.state;
