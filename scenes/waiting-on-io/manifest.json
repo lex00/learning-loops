@@ -5,7 +5,7 @@
   "order": 1,
   "lede": "A marble reaches a point where it needs something from outside, a network response say, and cannot go on until it arrives. It leaves the running platform and another marble runs. Toggle the runtime. The scene keeps going.",
   "misconception": "My three tasks run at the same time. In asyncio and in Python threads, exactly one marble is ever on the platform. Progress comes from waits overlapping, never from runs overlapping. Go and tokio widen the platform, and even there marbles queue when the slots are full.",
-  "look": "Stare at the beat where a reply lands while every slot is taken. The gate turns red and the lift holds. Two things separate the four runtimes here, how many slots the platform has and whether a claw hangs over it.",
+  "look": "Stare at the beat where a reply lands while every slot is taken. The gate turns red and the lift holds. What separates the runtimes on this track is how many slots the platform has, how heavy the marbles are, and whether a lock changes hands.",
   "marbles": 3,
   "names": [
     "one-dot",
@@ -40,6 +40,8 @@
   "variantOrder": [
     "threads",
     "asyncio",
+    "freethreaded",
+    "multiproc",
     "go",
     "tokio"
   ],
@@ -52,7 +54,7 @@
       "slotName": "the GIL",
       "liftName": "the OS scheduler",
       "lane2": "no second lane",
-      "note": "One slot because there is one lock. The padlock is the GIL and only its holder runs Python. The claw is the OS clock, and it can take a thread off the platform when its slice ends.",
+      "note": "One slot because there is one lock. The padlock is the GIL and only its holder runs Python.",
       "words": {
         "trap": "blocks",
         "ready": "runnable",
@@ -102,7 +104,7 @@
       "slotName": "the loop",
       "liftName": "the event loop",
       "lane2": "no second lane",
-      "note": "One slot, no lock, and no claw. The loop just runs the next ready task. Same schedule as threads here, but nothing is handed around and nothing can be taken away.",
+      "note": "One slot and no lock. The loop just runs the next ready task. Same schedule as threads here, but nothing is handed around.",
       "words": {
         "trap": "await",
         "ready": "ready",
@@ -151,7 +153,7 @@
       "slotName": "a P",
       "liftName": "the runtime scheduler",
       "lane2": "a second P",
-      "note": "Two slots and a claw. The runtime can take a goroutine off a P when its slice ends.",
+      "note": "Two slots. Two goroutines run at the same instant, one per P.",
       "words": {
         "trap": "parks",
         "ready": "runnable",
@@ -200,7 +202,7 @@
       "slotName": "a worker thread",
       "liftName": "the tokio runtime",
       "lane2": "a second worker",
-      "note": "Two slots and no claw. Tokio cannot take a task off a worker. Same schedule as Go here, and the claw is the whole difference.",
+      "note": "Two slots. Two tasks run at the same instant, one per worker thread. Same schedule as Go here.",
       "words": {
         "trap": "pending",
         "ready": "woken",
@@ -238,6 +240,104 @@
         "token": [
           "no lock",
           "a worker thread is a slot, not a lock. Two tasks run at the same instant."
+        ]
+      }
+    },
+    "freethreaded": {
+      "label": "Python free-threaded",
+      "slots": 2,
+      "weight": 1.5,
+      "preempt": true,
+      "slotName": "a core",
+      "liftName": "the OS scheduler",
+      "lane2": "a second thread",
+      "note": "Two slots and no lock. The free-threaded build of Python 3.14 dropped the GIL, so two threads run Python at the same instant and share memory.",
+      "words": {
+        "trap": "blocks",
+        "ready": "runnable",
+        "done": "exits"
+      },
+      "gloss": {
+        "marble": [
+          "a thread",
+          "an operating-system thread, as in the threads runtime, but on the free-threaded build of Python 3.14. It is heavy for the same reason, its own stack."
+        ],
+        "slot": [
+          "a core",
+          "with no GIL, a thread runs whenever the OS gives it a core, so two run Python at once. Two are drawn here."
+        ],
+        "lift": [
+          "the OS scheduler",
+          "the operating system decides which thread runs, and nothing in Python holds it back."
+        ],
+        "trap": [
+          "blocks",
+          "a blocking call parks the thread while it waits. Its core is free for another thread."
+        ],
+        "ready": [
+          "runnable",
+          "the OS marks the thread ready and gives it the next free core."
+        ],
+        "run": [
+          "running on a core",
+          "this thread is executing Python on a core of its own."
+        ],
+        "done": [
+          "exits",
+          "the thread function returned."
+        ],
+        "token": [
+          "no lock",
+          "this build removed the GIL. Threads share memory, so the locks that guard your own data are now yours to write."
+        ]
+      }
+    },
+    "multiproc": {
+      "label": "Python multiprocessing",
+      "slots": 2,
+      "weight": 1.9,
+      "preempt": true,
+      "slotName": "a core",
+      "liftName": "the OS scheduler",
+      "lane2": "a second process",
+      "note": "Two slots and no shared lock. Each process is a whole interpreter, so two run Python at the same instant, but they share no memory.",
+      "words": {
+        "trap": "blocks",
+        "ready": "runnable",
+        "done": "exits"
+      },
+      "gloss": {
+        "marble": [
+          "a process",
+          "a separate interpreter with its own memory. The heaviest marble here: starting one means starting Python again."
+        ],
+        "slot": [
+          "a core",
+          "each process has a GIL of its own, so they never contend. Two run Python at once. Two are drawn here."
+        ],
+        "lift": [
+          "the OS scheduler",
+          "the operating system schedules processes onto cores."
+        ],
+        "trap": [
+          "blocks",
+          "a blocking call parks the process while it waits. Its core is free for another."
+        ],
+        "ready": [
+          "runnable",
+          "the OS marks the process ready and gives it the next free core."
+        ],
+        "run": [
+          "running on a core",
+          "this process is executing on a core of its own."
+        ],
+        "done": [
+          "exits",
+          "the process's function returned, and its result is sent back across a pipe."
+        ],
+        "token": [
+          "no shared lock",
+          "each process has its own GIL, so nothing is handed between them. The price is that they share no objects either; everything crosses by copying."
         ]
       }
     }

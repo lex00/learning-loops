@@ -53,9 +53,6 @@ loop-scene .gate { stroke: var(--ll-stall); stroke-width: 3; fill: none; opacity
 loop-scene svg.held .gate { opacity: 1; }
 loop-scene .carriage { fill: var(--ll-track); transition: fill 300ms; }
 loop-scene svg.held .carriage { fill: var(--ll-stall); }
-loop-scene .claw { opacity: 0; transition: opacity 400ms; }
-loop-scene .claw path, loop-scene .claw circle { stroke: var(--ll-ink); stroke-width: 2; }
-loop-scene .claw.on { opacity: 1; }
 loop-scene .ll-hook { opacity: 0; transition: opacity 300ms; }
 loop-scene .ll-hook.on { opacity: 1; }
 loop-scene .ll-token { opacity: 0; transition: opacity 300ms; }

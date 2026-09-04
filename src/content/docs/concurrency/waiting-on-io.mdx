@@ -23,7 +23,7 @@ Every row is a real property of the runtime, not a metaphor. The slot is named f
 
 <VariantTable scene="waiting-on-io" />
 
-Threads and asyncio produce the same schedule in this scene. That is deliberate and true: for work that only waits on replies, one slot is one slot. Go and tokio also share a schedule here. What separates the pairs is the claw over the platform: whether the scheduler can take a running marble off without being asked. Nothing in this scene needs it, because every marble reaches the wait point. The next scene is where the claw comes down.
+Threads and asyncio produce the same schedule in this scene. That is deliberate and true: for work that only waits on replies, one slot is one slot. The four two-slot runtimes share a schedule too. What separates them on this track is how heavy the marbles are and whether a lock changes hands. What a scheduler can do to a marble that never reaches the wait point is the next scene.
 
 ## Reading the track
 
