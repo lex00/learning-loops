@@ -27,11 +27,12 @@ npm test               level 1: every scene's state machine against its manifest
 npm run build          static site into dist/
 npm run validate:dom   level 2: render each scene and runtime in headless Chrome and diff the trace strip
 npm run validate       all of the above
-npm run shot -- waiting-on-io go 5    screenshot a scene at a tick
+npm run shot -- waiting-on-io go 5    screenshot a scene at a tick, in real time
+node tools/probe.mjs waiting-on-io threads 8   print marble positions every 350 ms for 8 s
 npm run lint           prose lint of pages, manifests, and this file with the sentences de-stink rules
 ```
 
-Level 2 and the screenshot helper use the installed Google Chrome on macOS; set CHROME to point elsewhere.
+Level 2, the screenshot helper, and the probe use the installed Google Chrome on macOS; set CHROME to point elsewhere. Level 2 uses Chrome's virtual time, which is fine for the trace strip but does not run animation frames faithfully; the screenshot and probe tools drive Chrome in real time for that reason.
 
 ## Adding a runtime to a scene
 

@@ -9,18 +9,17 @@ const el = (tag, attrs = {}) => { const e = document.createElementNS(NS, tag); f
 const active = new WeakMap();
 const easeInOut = t => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
 function setPos(node, [x, y]) { node.setAttribute('transform', `translate(${x.toFixed(2)} ${y.toFixed(2)})`); node._pos = [x, y]; }
-function tween(node, points, ms, delay = 0, onDone, reduced = false) {
+function tween(node, points, ms, delay = 0, onDone, reduced = false, linear = false) {
   const prev = active.get(node); if (prev) cancelAnimationFrame(prev.raf);
   const pts = [node._pos || points[0], ...points];
   const lens = []; let total = 0;
   for (let i = 1; i < pts.length; i++) { const d = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); lens.push(d); total += d; }
   if (reduced || ms === 0 || total === 0) { setPos(node, points[points.length - 1]); if (onDone) onDone(); return; }
-  // the start time comes from the first frame's own timestamp, never performance.now(): the two clocks can differ
-  let t0 = null; const state = { raf: 0 };
-  const frame = now => {
-    if (t0 === null) t0 = now + delay;
-    const u = Math.min(1, Math.max(0, (now - t0) / ms));
-    const e = easeInOut(u) * total;
+  // progress is measured on performance.now(), the same clock as the tick interval, never on frame timestamps
+  const t0 = performance.now() + delay; const state = { raf: 0 };
+  const frame = () => {
+    const u = Math.min(1, Math.max(0, (performance.now() - t0) / ms));
+    const e = (linear ? u : easeInOut(u)) * total;
     let acc = 0, i = 0; while (i < lens.length - 1 && acc + lens[i] < e) { acc += lens[i]; i++; }
     const f = lens[i] ? Math.min(1, (e - acc) / lens[i]) : 1;
     const a = pts[i], b = pts[i + 1];
@@ -31,14 +30,14 @@ function tween(node, points, ms, delay = 0, onDone, reduced = false) {
 }
 function tweenAngle(node, cx, cy, from, to, ms, delay = 0, reduced = false) {
   if (reduced || ms === 0) { node.setAttribute('transform', `rotate(${to} ${cx} ${cy})`); return; }
-  let t0 = null;
-  const frame = now => { if (t0 === null) t0 = now + delay; const u = Math.min(1, Math.max(0, (now - t0) / ms)); node.setAttribute('transform', `rotate(${(from + (to - from) * easeInOut(u)).toFixed(2)} ${cx} ${cy})`); if (u < 1) requestAnimationFrame(frame); };
+  const t0 = performance.now() + delay;
+  const frame = () => { const u = Math.min(1, Math.max(0, (performance.now() - t0) / ms)); node.setAttribute('transform', `rotate(${(from + (to - from) * easeInOut(u)).toFixed(2)} ${cx} ${cy})`); if (u < 1) requestAnimationFrame(frame); };
   requestAnimationFrame(frame);
 }
 function tweenScale(node, from, to, ms, reduced = false) {
   if (reduced || ms === 0) { node.setAttribute('transform', `scale(${to})`); return; }
-  let t0 = null;
-  const frame = now => { if (t0 === null) t0 = now; const u = Math.min(1, (now - t0) / ms); node.setAttribute('transform', `scale(${(from + (to - from) * easeInOut(u)).toFixed(3)})`); if (u < 1) requestAnimationFrame(frame); };
+  const t0 = performance.now();
+  const frame = () => { const u = Math.min(1, (performance.now() - t0) / ms); node.setAttribute('transform', `scale(${(from + (to - from) * easeInOut(u)).toFixed(3)})`); if (u < 1) requestAnimationFrame(frame); };
   requestAnimationFrame(frame);
 }
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
@@ -46,16 +45,14 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
 
 // geometry of the track, in SVG user units
 const P = {
-  laneY: [82, 64], laneStart: 190,
-  trap: i => [330, [82, 64][i]], drop: [346, 104], platformEnd: i => [450, [82, 64][i]], liftTop: i => [161, [82, 64][i]],
+  laneY: [82, 64], laneStart: 190, beat: 130,
+  trap: i => [320, [82, 64][i]], drop: [336, 104], platformEnd: i => [450, [82, 64][i]], liftTop: i => [161, [82, 64][i]],
   pocket: [[326, 156], [370, 156], [414, 156]], pocketExit: [[326, 236], [370, 236], [414, 236]],
   chute: [[300, 236], [284, 258]], ramp: i => [200 + 40 * i, 254],
   liftBottom: [161, 254], trayDrop: [500, 140], tray: i => [488 + 12 * i, 189], trayOut: [500, 262], replyFrom: [290, 160],
   hook: [128, 96], tokenLift: [0, -14],
 };
 const lift = ([x, y]) => [x + P.tokenLift[0], y + P.tokenLift[1]];
-// where a running marble sits on its lane after k ticks of its run segment: the first run ends at the trapdoor, the second crosses it
-const RUN_X = { 0: [190], 2: [190, 390] };
 
 const DEVICES = `
       <g class="ll-devices">
@@ -90,10 +87,12 @@ const TEMPLATE = (m) => `
       <path class="gate" d="M175 242 V272"/>
       <text x="161" y="308" text-anchor="middle" class="t ll-lift-label"></text>
 
+      <rect class="ll-beat" x="172" y="12" width="0" height="3" rx="1.5"/>
       <g class="lane2">
-        <path d="M172 72 H330" class="rail-lit"/><path d="M352 72 H450" class="rail-lit"/>
-        <path d="M330 72 H352" class="rail-lit flap" data-lane="1" transform="rotate(0 330 72)"/>
-        <circle cx="330" cy="72" r="3" fill="var(--ll-ink)"/>
+        <path d="M172 72 H320" class="rail-lit"/><path d="M342 72 H450" class="rail-lit"/>
+        <path d="M320 72 H342" class="rail-lit flap" data-lane="1" transform="rotate(0 320 72)"/>
+        <circle cx="320" cy="72" r="3" fill="var(--ll-ink)"/>
+        <path d="M190 75 v5 M320 75 v5 M450 75 v5" class="thin ruler"/>
         <text x="214" y="62" class="t ll-lane2-label"></text>
       </g>
       <g class="claw">
@@ -101,9 +100,10 @@ const TEMPLATE = (m) => `
         <circle cx="384" cy="30" r="7" class="thin"/><path class="thin hand" d="M384 30 V24" transform="rotate(0 384 30)"/>
         <path d="M410 30 V46" class="thin"/><path d="M402 46 H418" class="thin"/><path d="M402 46 V54" class="thin"/><path d="M418 46 V54" class="thin"/>
       </g>
-      <path d="M172 90 H330" class="rail-lit"/><path d="M352 90 H450" class="rail-lit"/>
-      <path d="M330 90 H352" class="rail-lit flap" data-lane="0" transform="rotate(0 330 90)"/>
-      <circle cx="330" cy="90" r="3" fill="var(--ll-ink)"/>
+      <path d="M172 90 H320" class="rail-lit"/><path d="M342 90 H450" class="rail-lit"/>
+      <path d="M320 90 H342" class="rail-lit flap" data-lane="0" transform="rotate(0 320 90)"/>
+      <circle cx="320" cy="90" r="3" fill="var(--ll-ink)"/>
+      <path d="M190 93 v5 M320 93 v5 M450 93 v5" class="thin ruler"/>
 
       ${DEVICES}
 
@@ -154,6 +154,7 @@ export function mount(host, M) {
   }
   let scaleNow = 1;
   const move = (node, points, ms, delay = 0) => tween(node, points, ms, delay, null, reduced);
+  const tokenPath0 = () => [lift(P.liftTop(0)), lift([P.laneStart, P.laneY[0]])];
   function liftAct(ms) {
     if (reduced) return;
     setPos(carriage, [0, 0]);
@@ -170,8 +171,8 @@ export function mount(host, M) {
   }
   function flap(lane, ms) {
     const f = host.querySelector(`.flap[data-lane="${lane}"]`); const cy = P.laneY[lane] + 8;
-    tweenAngle(f, 330, cy, 0, 55, Math.round(ms * 0.35), 0, reduced);
-    tweenAngle(f, 330, cy, 55, 0, Math.round(ms * 0.3), Math.round(ms * 0.85), reduced);
+    tweenAngle(f, 320, cy, 0, 55, Math.round(ms * 0.35), 0, reduced);
+    tweenAngle(f, 320, cy, 55, 0, Math.round(ms * 0.3), Math.round(ms * 0.85), reduced);
   }
   function reply(p, ms) {
     const c = el('circle', { r: 5, class: 'reply' }); gR.appendChild(c); setPos(c, P.replyFrom);
@@ -185,7 +186,6 @@ export function mount(host, M) {
       r.setAttribute('stroke-dasharray', CIRC); r.setAttribute('stroke-dashoffset', CIRC * (1 - frac));
     }
   }
-  const lanePos = m => { const xs = RUN_X[m.seg]; const k = Math.min(M.skeleton[m.seg].ticks - m.left, xs.length - 1); return [xs[k], P.laneY[m.slot]]; };
 
   // ----- trace strip -----
   const COLS = 25, X0 = 40, CW = 27, ROWS = [10, 32, 54];
@@ -205,9 +205,10 @@ export function mount(host, M) {
       const x = X0 + i * CW;
       if (h.cycleStart) trace.appendChild(el('line', { x1: x - 2.5, y1: 4, x2: x - 2.5, y2: 70, class: 'cycle' }));
       if (h.toggled) trace.appendChild(el('path', { d: `M${x + 7} 1 l8 0 l-4 5 z`, class: 'vmark' }));
+      const newest = i === history.length - 1;
       h.s.forEach((loc, r) => {
         const cls = loc === 'slot' ? 'cell-run' : loc === 'pocket' ? 'cell-wait' : loc === 'ramp' ? 'cell-ready' : null;
-        if (cls) trace.appendChild(el('rect', { x, y: ROWS[r], width: 22, height: 12, rx: 2, class: cls }));
+        if (cls) trace.appendChild(el('rect', { x, y: ROWS[r], width: 22, height: 12, rx: 2, class: cls + (newest ? ' cell-new' : '') }));
       });
     });
   }
@@ -256,13 +257,17 @@ export function mount(host, M) {
     const paths = new Map();
     const add = (m, pts, delay = 0) => { const cur = paths.get(m.dots); if (cur) cur.points.push(...pts); else paths.set(m.dots, { points: pts, delay }); };
     let readyHeld = false, lifted = false, tokenPath = null;
+    const glides = new Map();   // dots -> [x, y] the marble glides to, at steady speed, until its run ends
     for (const e of ev) {
       if (V.token) {
-        if (e.type === 'run' && e.slot === 0) tokenPath = [lift(P.liftTop(0)), lift([P.laneStart, P.laneY[0]])];
+        if (e.type === 'run' && e.slot === 0) tokenPath = tokenPath0();
         else if ((e.type === 'trap' || e.type === 'done') && e.from === 0) tokenPath = [P.hook];
       }
       const nm = e.m ? NAMES[e.m.dots - 1] : '';
-      if (e.type === 'run') { add(e.m, [P.liftBottom, P.liftTop(e.slot), [P.laneStart, P.laneY[e.slot]]]); lifted = true; phrases.push(`Lift raises ${nm}.`); }
+      if (e.type === 'run') {
+        add(e.m, [P.liftBottom, P.liftTop(e.slot), [P.laneStart, P.laneY[e.slot]]]); lifted = true; phrases.push(`Lift raises ${nm}.`);
+        glides.set(e.m.dots, { to: [P.laneStart + P.beat * M.skeleton[e.m.seg].ticks, P.laneY[e.slot]], ticks: M.skeleton[e.m.seg].ticks });
+      }
       else if (e.type === 'trap') { add(e.m, [P.trap(e.from), P.drop, P.pocket[e.pocket]]); flap(e.from, ms); request(e.pocket, Math.round(ms * 0.6), ms); phrases.push(`${cap(nm)} ${V.words.trap} and asks the outside world.`); }
       else if (e.type === 'ready') {
         reply(e.pocket, half);
@@ -277,16 +282,19 @@ export function mount(host, M) {
     const held0 = sim.held();
     for (const m of sim.slots) {
       if (!m || paths.has(m.dots)) continue;
-      add(m, [lanePos(m)]);
       phrases.push(`${cap(NAMES[m.dots - 1])} runs on, ${m.left} tick${m.left === 1 ? '' : 's'} of work left.`);
     }
     for (const m of sim.ramp) if (held0 && !ev.some(e => e.m === m)) phrases.push(`${cap(NAMES[m.dots - 1])} waits for a slot.`);
-    for (const [dots, { points, delay }] of paths) move(els[dots], points, ms, delay);
-    if (V.token) {
-      const m0 = sim.slots[0];
-      if (!tokenPath && m0 && paths.has(m0.dots)) tokenPath = paths.get(m0.dots).points.map(lift);
-      if (tokenPath) move($('.ll-token'), tokenPath, ms);
+    for (const [dots, { points, delay }] of paths) {
+      const g = glides.get(dots);
+      if (!g) { move(els[dots], points, ms, delay); continue; }
+      // raise, then glide at steady speed so the run ends exactly on its last beat
+      const glideMs = Math.max(1, g.ticks * period - ms);
+      tween(els[dots], points, ms, delay, () => tween(els[dots], [g.to], glideMs, 0, null, reduced, true), reduced);
+      if (V.token && sim.slots[0] && sim.slots[0].dots === dots) tokenPath = null,
+        tween($('.ll-token'), tokenPath0(), ms, delay, () => tween($('.ll-token'), [lift(g.to)], glideMs, 0, null, reduced, true), reduced);
     }
+    if (V.token && tokenPath) move($('.ll-token'), tokenPath, ms);
     if (lifted) liftAct(ms);
     for (let d = 1; d <= M.marbles; d++) els[d].classList.toggle('lit', sim.slots.some(m => m && m.dots === d));
     rings(sim);
@@ -306,10 +314,16 @@ export function mount(host, M) {
   function spinDial(on) {
     cancelAnimationFrame(dialRaf); const hand = $('.claw .hand');
     if (!on || reduced) { hand.setAttribute('transform', 'rotate(0 384 30)'); return; }
-    const frame = now => { hand.setAttribute('transform', `rotate(${((now % period) / period * 360).toFixed(1)} 384 30)`); dialRaf = requestAnimationFrame(frame); };
+    const frame = () => { hand.setAttribute('transform', `rotate(${((performance.now() % period) / period * 360).toFixed(1)} 384 30)`); dialRaf = requestAnimationFrame(frame); };
     dialRaf = requestAnimationFrame(frame);
   }
-  function tickOnce() { render(sim.step()); }
+  let lastBeat = performance.now(), beatRaf = 0;
+  function beatLoop() {
+    cancelAnimationFrame(beatRaf); const bar = $('.ll-beat');
+    const frame = () => { const f = playing ? Math.min(1, (performance.now() - lastBeat) / period) : 0; bar.setAttribute('width', (278 * f).toFixed(1)); beatRaf = requestAnimationFrame(frame); };
+    beatRaf = requestAnimationFrame(frame);
+  }
+  function tickOnce() { lastBeat = performance.now(); render(sim.step()); }
   function start() { stop(); host.style.setProperty('--ll-wordms', Math.round(period * M.timing.wordFraction) + 'ms'); if (playing && visible) timer = setInterval(tickOnce, period); }
   function stop() { if (timer) { clearInterval(timer); timer = null; } }
   const playBtn = $('.ll-play');
@@ -324,7 +338,7 @@ export function mount(host, M) {
 
   applyVariant(M.variants[initial] ? initial : M.anchor, false);
   sim.slotCount = V.slots;   // set the count only; the first raise belongs to tick 1
-  rings(sim); drawTrace();
+  rings(sim); drawTrace(); beatLoop();
   $('.ll-caption').innerHTML = `<span class="ll-eyebrow">tick 0</span> &nbsp; ${cap(numberWord(M.marbles))} marbles are created on the ramp.`;
   start();
 }

@@ -20,6 +20,7 @@
     "sharp": "^0.35.3"
   },
   "devDependencies": {
+    "puppeteer-core": "^25.10.0",
     "sentences": "^0.1.1"
   }
 }
