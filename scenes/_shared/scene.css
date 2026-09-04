@@ -76,7 +76,7 @@ loop-scene .ll-trace-wrap { border-top: 1px solid var(--ll-rule); padding-top: 6
 loop-scene .cell-run { fill: var(--ll-lit); }
 loop-scene .cell-wait { fill: none; stroke: var(--ll-marble); stroke-width: 1.2; }
 loop-scene .cell-ready { fill: var(--ll-track); }
-loop-scene .cell-new { animation: ll-cellpulse 700ms ease-out; }
+loop-scene .cell-done { animation: ll-cellpulse 600ms ease-out; }
 @keyframes ll-cellpulse { 0% { stroke: var(--ll-ink); stroke-width: 2.5; } 100% { stroke-width: 0; } }
 loop-scene .ll-beat { fill: var(--ll-lit); opacity: 0.55; }
 loop-scene .ruler { stroke: var(--ll-muted); }

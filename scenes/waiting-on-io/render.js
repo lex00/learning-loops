@@ -205,10 +205,11 @@ export function mount(host, M) {
       const x = X0 + i * CW;
       if (h.cycleStart) trace.appendChild(el('line', { x1: x - 2.5, y1: 4, x2: x - 2.5, y2: 70, class: 'cycle' }));
       if (h.toggled) trace.appendChild(el('path', { d: `M${x + 7} 1 l8 0 l-4 5 z`, class: 'vmark' }));
-      const newest = i === history.length - 1;
+      // the newest column fills over the tick, like the beat bar; the one before it just completed
+      const newest = i === history.length - 1, justDone = i === history.length - 2;
       h.s.forEach((loc, r) => {
         const cls = loc === 'slot' ? 'cell-run' : loc === 'pocket' ? 'cell-wait' : loc === 'ramp' ? 'cell-ready' : null;
-        if (cls) trace.appendChild(el('rect', { x, y: ROWS[r], width: 22, height: 12, rx: 2, class: cls + (newest ? ' cell-new' : '') }));
+        if (cls) trace.appendChild(el('rect', { x, y: ROWS[r], width: newest ? 0.5 : 22, height: 12, rx: 2, class: cls + (newest ? ' cell-new' : justDone ? ' cell-done' : '') }));
       });
     });
   }
@@ -320,7 +321,13 @@ export function mount(host, M) {
   let lastBeat = performance.now(), beatRaf = 0;
   function beatLoop() {
     cancelAnimationFrame(beatRaf); const bar = $('.ll-beat');
-    const frame = () => { const f = playing ? Math.min(1, (performance.now() - lastBeat) / period) : 0; bar.setAttribute('width', (278 * f).toFixed(1)); beatRaf = requestAnimationFrame(frame); };
+    const frame = () => {
+      const f = Math.min(1, (performance.now() - lastBeat) / period);
+      bar.setAttribute('width', (278 * f).toFixed(1));
+      const w = Math.max(0.5, 22 * f).toFixed(1);
+      for (const c of trace.querySelectorAll('.cell-new')) c.setAttribute('width', w);
+      beatRaf = requestAnimationFrame(frame);
+    };
     beatRaf = requestAnimationFrame(frame);
   }
   function tickOnce() { lastBeat = performance.now(); render(sim.step()); }
