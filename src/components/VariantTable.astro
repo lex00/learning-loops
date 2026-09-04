@@ -1,0 +1,22 @@
+---
+// The runtime comparison table, generated from the scene manifest so it can never drift from the scene.
+const manifests = import.meta.glob('../../scenes/*/manifest.json', { eager: true, import: 'default' });
+const { scene } = Astro.props;
+const m = manifests[`../../scenes/${scene}/manifest.json`];
+const keys = m.variantOrder;
+const rows = [
+  ['The marble is', k => m.variants[k].gloss.marble[0]],
+  ['Slots on the platform', k => String(m.variants[k].slots)],
+  ['The slot is', k => m.variants[k].slotName],
+  ['The lift is', k => m.variants[k].liftName],
+  ['Lift can interrupt', k => (m.variants[k].preempt ? 'yes' : 'no')],
+  ['Word at the trapdoor', k => m.variants[k].gloss.trap[0]],
+  ['Word when the reply lands', k => m.variants[k].gloss.ready[0]],
+  ['Word on the platform', k => m.variants[k].gloss.run[0]],
+  ['Word at the tray', k => m.variants[k].gloss.done[0]],
+];
+---
+<table>
+  <thead><tr><th></th>{keys.map(k => <th>{m.variants[k].label}</th>)}</tr></thead>
+  <tbody>{rows.map(([label, f]) => <tr><td><strong>{label}</strong></td>{keys.map(k => <td>{f(k)}</td>)}</tr>)}</tbody>
+</table>

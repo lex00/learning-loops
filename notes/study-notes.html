@@ -1,0 +1,176 @@
+<title>Study Notes for Language Universe</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --ground: #F3F5F7; --ink: #172033; --muted: #64708A; --rule: #D3D9E2; --track: #B8C1CF;
+    --lit: #0F7B6C; --lit-soft: #D6EDE8; --stall: #B4472F; --stall-soft: #F3DDD6; --marble: #2B4C8C; --code-bg: #E8ECF1;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #12171F; --ink: #E6EAF0; --muted: #93A0B4; --rule: #2C3543; --track: #3A4557;
+      --lit: #3FBFA8; --lit-soft: #16332F; --stall: #E07A5F; --stall-soft: #3A241D; --marble: #7FA3E8; --code-bg: #1C2330;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #12171F; --ink: #E6EAF0; --muted: #93A0B4; --rule: #2C3543; --track: #3A4557;
+    --lit: #3FBFA8; --lit-soft: #16332F; --stall: #E07A5F; --stall-soft: #3A241D; --marble: #7FA3E8; --code-bg: #1C2330;
+  }
+  body { background: var(--ground); color: var(--ink); font-family: "Source Serif 4", Georgia, serif; font-size: 17px; line-height: 1.6; }
+  main { max-width: 70ch; margin: 0 auto; padding: 56px 24px 96px; display: flex; flex-direction: column; gap: 44px; }
+  h1, h2, h3 { font-family: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif; text-wrap: balance; line-height: 1.15; margin: 0; }
+  h1 { font-size: 40px; font-weight: 700; letter-spacing: -0.01em; }
+  h2 { font-size: 24px; font-weight: 600; padding-top: 20px; border-top: 1px solid var(--rule); }
+  h3 { font-size: 15px; font-weight: 600; color: var(--muted); letter-spacing: 0.02em; }
+  p { margin: 0; }
+  a { color: var(--ink); text-decoration-color: var(--track); text-underline-offset: 3px; }
+  a:hover, a:focus-visible { text-decoration-color: var(--lit); outline: none; }
+  .eyebrow { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  header { display: flex; flex-direction: column; gap: 14px; }
+  header p.lede { font-size: 19px; line-height: 1.45; max-width: 58ch; }
+  section { display: flex; flex-direction: column; gap: 18px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 14px; color: var(--muted); }
+  .meta a { color: var(--muted); }
+  .word { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 0.9em; background: var(--code-bg); padding: 1px 6px; border-radius: 3px; }
+  .facet { display: grid; grid-template-columns: 110px 1fr; gap: 6px 18px; }
+  @media (max-width: 560px) { .facet { grid-template-columns: 1fr; } }
+  .facet > h3 { padding-top: 3px; }
+  .facet > div { display: flex; flex-direction: column; gap: 10px; }
+  blockquote { margin: 0; padding-left: 14px; border-left: 3px solid var(--track); color: var(--muted); font-style: italic; font-size: 15.5px; }
+  .take { border-left: 3px solid var(--lit); padding-left: 14px; }
+  .take b { font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; }
+  ol, ul { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 10px; }
+  li::marker { color: var(--muted); font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; }
+  ul { gap: 6px; font-size: 15.5px; }
+  .tension { border-left: 3px solid var(--stall); padding-left: 14px; }
+  footer { font-size: 14px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 16px; }
+</style>
+
+<main>
+  <header>
+    <p class="eyebrow">Study notes &middot; 2026-09-03 &middot; companion to the concept note and prior-art survey</p>
+    <h1>Study Notes for Language Universe</h1>
+    <p class="lede">Four pieces of prior art read closely for what they draw, how they move, how they were built, and what carries into a proof of concept of the marble run.</p>
+  </header>
+
+  <section>
+    <h2>Aquascope</h2>
+    <p class="meta"><a href="https://rust-book.cs.brown.edu/">The Rust Book, experimental edition</a> &middot; <a href="https://cel.cs.brown.edu/aquascope/">playground</a> &middot; <a href="https://github.com/cognitive-engineering-lab/aquascope">source</a> &middot; Crichton, Gray, Krishnamurthi, OOPSLA 2023</p>
+    <div class="facet">
+      <h3>What it draws</h3>
+      <div>
+        <p>Every path in the code carries three permissions, drawn as the letters R, W, and O for read, write, and own. A statement that changes them is annotated with only the change: <span class="word">+R+W+O</span> when a binding is created, a minus when a borrow takes one away, and a small icon for the cause. The paper is explicit that they draw differences rather than full state because it "helps readers better see how operations affect permissions."</p>
+        <p>The one visual signal for a program that will not compile is a hollow letter placed between an operator and its operand: the permission that was expected there and is missing. There is no separate error panel. The violation sits on the spot where it happens.</p>
+        <p>A second view interprets the program and draws stack frames beside a heap, with pointers as literal arrows. Time is unrolled into several side-by-side snapshots rather than one snapshot you scrub. Moved-out values are greyed, and a double free is annotated in red at the exact instruction.</p>
+      </div>
+      <h3>Why</h3>
+      <div>
+        <p>Their concept inventory found that learners could usually say why the borrow checker rejected a program but could not say what memory bug would occur if it ran, and often fixed lifetime errors by pasting whatever the compiler suggested. The visualization was designed to close that gap. Permissions were chosen over arrows between variables because arrows show what points at what, not why an operation is or is not allowed here. The diagram is a rendering of the compiler's own abstract state, not a metaphor laid on top.</p>
+        <blockquote>Unrolling lets a person more easily compare changes between states, and it allows a person to see all the information in the diagram without interaction.</blockquote>
+        <p>A live A/B test against the unillustrated chapter moved quiz scores from 48 to 57 percent across 342 readers.</p>
+      </div>
+      <h3>How it is built</h3>
+      <div>
+        <p>React and CodeMirror 6 for the code panel, with a forked leader-line library drawing arrows between DOM elements, so the rendering is DOM and SVG rather than canvas. A rustc plugin working on MIR produces the permission facts and Miri produces the runtime trace. Diagrams are precomputed at book build time by an mdbook preprocessor and embedded as data. Only the playground computes on demand. The visual layer knows nothing about Rust; only the analysis does.</p>
+      </div>
+    </div>
+    <p class="take"><b>Take for the marble run.</b> The hollow letter is the gate. A variant that cannot do the thing should show the missing capability at the exact track position where it would be needed, in the same visual language as the capabilities that are present. And their argument for unrolled frames is an argument for a loop made of held beats, so that any frame caught mid-cycle still reads.</p>
+  </section>
+
+  <section>
+    <h2>samwho.dev</h2>
+    <p class="meta"><a href="https://samwho.dev">site</a> &middot; <a href="https://github.com/samwho/visualisations">source</a> &middot; Sam Rose</p>
+    <div class="facet">
+      <h3>What it draws</h3>
+      <div>
+        <p>A small cast of shapes reused across essays: filled circles for requests, hollow circles for timed-out ones, striped circles for priority items, and a queue glyph. The same tiny SVG icon appears inline in the prose next to the word it stands for, so "priority request" is always followed by its shape. The reader learns the vocabulary by pattern matching and then reads the animation without labels.</p>
+        <p>Colours come from the Wong and Tol colourblind-safe palettes, hardcoded once per project, with contrasting variants derived at runtime against a target contrast ratio. Three cartoon huskies of different ages act as commentators in speech bubbles.</p>
+        <blockquote>Someone gave me the advice to use animals, ideally animals of very different sizes or colours. People instantly picture them and remember them.</blockquote>
+      </div>
+      <h3>How it moves</h3>
+      <div>
+        <p>Not everything is ambient. Queueing and load balancing keep running while you read; hashing and Bloom filters wait for a click. Anything that runs continuously is wired to an intersection observer and the page visibility event, so it stops offscreen and restarts when it returns. Speed is reader-adjustable through a global time scale. Randomness appears only where it is the concept being taught, such as probabilistic drops, never as texture.</p>
+        <p>Controls sit directly under the visual they affect and appear only when the essay reaches the concept that needs them. Questions are Socratic, posed in the prose or by a dog, and answered afterward.</p>
+      </div>
+      <h3>How it is built</h3>
+      <div>
+        <p>Plain TypeScript web components, one standalone package per essay, dropped into static HTML with a script tag. Earlier essays render on PixiJS canvas with GSAP tweens and matter-js physics. Later ones dropped both for SVG and the native Web Animations API. Simulation state lives in plain classes under a core directory, fully separate from the rendering classes. Reduced motion is handled by stripping only the scale tweens rather than disabling animation.</p>
+      </div>
+    </div>
+    <p class="take"><b>Take for the marble run.</b> Put the shape next to the word everywhere the word appears, including any prose around the scene. Keep the simulation as a plain state machine with no knowledge of rendering. Pause offscreen from day one. And let jitter exist only where timing variance is part of the lesson.</p>
+  </section>
+
+  <section>
+    <h2>RustViz</h2>
+    <p class="meta"><a href="https://rustviz.github.io/">playground</a> &middot; <a href="https://github.com/rustviz/rustviz">source</a> &middot; Almeida, Cheng, Kim, Zhao, Omar, VL/HCC 2022</p>
+    <div class="facet">
+      <h3>What it draws</h3>
+      <div>
+        <p>A vertical column per variable beside the code, so time runs down the page. A filled dot marks a binding taking ownership. An arrow between columns marks a move or copy. The line for a binding is solid while it is mutable and usable, hollow while it is immutable or while a live borrow forbids mutation, and solid again when the borrow ends. A curved branch off a column shows access through a reference. Conditionals split the timeline, with the inactive branch greyed.</p>
+        <p>Hovering any mark underlines the matching source line and pops a plain-English message such as "Move from s to takes_ownership()."</p>
+      </div>
+      <h3>What the study found</h3>
+      <div>
+        <p>Across four semesters and 303 students, 93 percent rated the diagrams helpful. The repeated complaint was legibility at a glance rather than the concept. The paper reports feedback like "I still don't know what the double line vs the single line means" and lists a static legend as unresolved future work. Hover text alone did not teach the notation.</p>
+      </div>
+      <h3>How it is built</h3>
+      <div>
+        <p>Two eras under one visual grammar. The studied version is annotation-based: instructors write events in a comment DSL, and a column spec chooses which variables get columns, so irrelevant bindings can be left out. The current rewrite plugs into rustc and derives the same diagram from the real borrow checker. Both emit SVG.</p>
+      </div>
+    </div>
+    <p class="take"><b>Take for the marble run.</b> Encode the state that must be obvious without attention in stroke or shape, not colour alone. Keep a permanent legend on screen. Let the author choose which marbles are in the scene rather than rendering the full execution. And freeze the visual grammar early, since it survived a total swap of the analysis underneath.</p>
+  </section>
+
+  <section>
+    <h2>Await Simulator</h2>
+    <p class="meta"><a href="https://devops-daily.com/games/javascript-promises-async-await-simulator">page</a> &middot; DevOps Daily, one of about fifty-five browser tools in the same house style</p>
+    <div class="facet">
+      <h3>What it draws</h3>
+      <div>
+        <p>Four scenarios, each a scripted trace: microtasks beat timers, await suspends the function, rejections jump to catch, and Promise combinators. Six cards share the screen: source with the executing line highlighted, call stack, runtime APIs, a promise inspector, the microtask queue, and the task queue, plus a console.</p>
+        <p>Everything is neutral grey. A single accent colour marks whatever is happening right now: the executing line, the panel receiving an item, its icon. There is no fixed colour per queue type. Colour means "now," not "this kind of thing."</p>
+      </div>
+      <h3>The predict moment</h3>
+      <div>
+        <p>At scripted forks the run halts and a card asks a plain question such as "What gets printed first after Start?" with a short stack of answer buttons. It is placed where the step counter sits, so it reads as a fork in the road rather than a quiz beside it. What happens on a wrong guess could not be verified because the page is client-rendered.</p>
+      </div>
+      <h3>How it is built</h3>
+      <div>
+        <p>Next.js on Cloudflare Pages. The page states that it does not execute arbitrary JavaScript and that each scenario is modelled as a deterministic event-loop trace. Playback offers step back, play, step forward, reset, and three speeds bound to delays of 1500, 1100, and 650 milliseconds, with slow selected by default.</p>
+      </div>
+    </div>
+    <p class="take"><b>Take for the marble run.</b> Hand-authored traces are the norm, even in a tool about a real runtime. One accent for "now" fits the lit-path idea. The predict card belongs at a switch, phrased as a prediction about which path the marble takes.</p>
+  </section>
+
+  <section>
+    <h2>What carries into the proof of concept</h2>
+    <ol>
+      <li>Script the run. Every scene is a hand-authored trace of beats, not an interpreter. All four pieces do this or precompute the equivalent.</li>
+      <li>Ground the track in the runtime's real states. The sections should be the states the scheduler actually uses, so the scene is diagnostic rather than decorative.</li>
+      <li>A loop of held beats, not fluid motion. Each beat is legible on its own, with a pause, so a frame caught mid-cycle still reads. This is Aquascope's unrolling argument applied to a loop.</li>
+      <li>Mark the delta at each beat. Show what a marble gained or lost, with a consistent icon for gain and loss.</li>
+      <li>Put the missing capability where it would be used. The gate is a hollow mark on the track at the switch, drawn in the same grammar as the capabilities that are present.</li>
+      <li>One accent means now. The lit path and the active marble take the accent. Persistent state is encoded in stroke and shape, solid versus hollow, so it survives colourblindness and a monochrome glance.</li>
+      <li>Keep a permanent legend on screen. Tooltips did not teach RustViz's notation to 303 students.</li>
+      <li>Fuse word and shape everywhere. The vocabulary word appears at the moment it fires, and its shape follows the word wherever it is written.</li>
+      <li>Predict at the switch. Occasionally halt at a branch and ask which path the marble takes in the selected variant.</li>
+      <li>Let the author suppress marbles. A scene shows the units of work that matter to the concept, not the literal full execution.</li>
+      <li>Freeze the visual grammar before the data pipeline. Track shapes, switch icons, and the gate are the stable contract. What computes the trace can change later.</li>
+      <li>Design each scene from a named misconception. Aquascope mined real learner failures first. For the base scene the candidate is "a Python thread runs at the same time as another."</li>
+      <li>Pause offscreen, expose a speed control, and handle reduced motion by removing only the tweens that cause discomfort.</li>
+      <li>Separate the state machine from the renderer from the first line of code.</li>
+    </ol>
+    <p class="tension">One tension to hold. Aquascope argues against continuous animation and samwho.dev triggers most of its simulations by click, while the concept wants something that runs unattended. The reconciliation is the beat loop in point three: it runs on its own, but each beat is a still picture that holds long enough to read.</p>
+  </section>
+
+  <section>
+    <h2>Could not verify</h2>
+    <ul>
+      <li>The exact colours and glyph shapes in Aquascope's paper figures were read from the text layer, not seen.</li>
+      <li>How the Await Simulator responds to a wrong prediction, and whether it loops at the end of a trace.</li>
+      <li>The current rendering of the RustViz playground, which is a client-rendered app. The grammar above rests on the paper and the readme.</li>
+      <li>samwho.dev's dark-mode palette values, which live in a site stylesheet outside the visualisations repository.</li>
+    </ul>
+  </section>
+
+  <footer>Read closely on 2026-09-03. Quotes are from the cited papers and from Sam Rose's public comments.</footer>
+</main>

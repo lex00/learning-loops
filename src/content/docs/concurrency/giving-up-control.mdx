@@ -1,0 +1,33 @@
+---
+title: Giving Up Control
+description: A unit of work reaches a point where it needs a reply from outside, leaves the running platform, and another runs. Python threads, Python asyncio, Go, and Rust tokio on one track.
+sidebar:
+  order: 1
+---
+
+import LoopScene from '../../../components/LoopScene.astro';
+import VariantTable from '../../../components/VariantTable.astro';
+
+A marble reaches a point where it needs something from outside, a network response say, and cannot go on until it arrives. It leaves the running platform and another marble runs. Toggle the runtime. The scene keeps going.
+
+<LoopScene scene="giving-up-control" />
+
+## The lesson
+
+**The misconception this corrects.** "My three tasks run at the same time." In asyncio and in Python threads, exactly one marble is ever on the platform. Progress comes from waits overlapping, never from runs overlapping. Go and tokio widen the platform, and even there marbles queue when the slots are full.
+
+**What should be burned in after staring.** The platform is narrow. The pockets are where time passes. A marble that becomes ready does not run until a slot opens, and in Python nothing but the running marble can open it.
+
+## The four runtimes
+
+Every row is a real property of the runtime, not a metaphor. The slot is named for the thing that admits a marble to run. The words are the ones each runtime's own docs and source use.
+
+<VariantTable scene="giving-up-control" />
+
+Threads and asyncio produce the same schedule in this scene. That is deliberate and true: for work that only waits on replies, one slot is one slot. Go and tokio also share a schedule here. What separates the pairs is the dial on the lift: whether the scheduler can take a running marble off the platform without being asked. Nothing in this scene needs it, because every marble reaches the wait point. The next scene is where it matters.
+
+## Reading the track
+
+Every marble has the same skeleton: run one tick to reach the trapdoor, wait two ticks for a reply, run two ticks to finish. The schedule you see is derived from that skeleton by the runtime's rules, which is why toggling mid-run continues from the current state rather than starting over.
+
+Marbles carry one, two, or three dots so they can be followed without colour. Green means running. A marble in a pocket is waiting for a reply from the outside world; the ring above the pocket counts down to it. The ramp is first in, first out. When the gate at the lift turns red, a marble is ready and every slot is taken.

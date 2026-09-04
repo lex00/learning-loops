@@ -1,0 +1,293 @@
+<title>Base Scene: Giving Up Control</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --ground: #F3F5F7; --ink: #172033; --muted: #64708A; --rule: #D3D9E2; --track: #B8C1CF;
+    --lit: #0F7B6C; --lit-soft: #D6EDE8; --stall: #B4472F; --stall-soft: #F3DDD6; --marble: #2B4C8C; --code-bg: #E8ECF1;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #12171F; --ink: #E6EAF0; --muted: #93A0B4; --rule: #2C3543; --track: #3A4557;
+      --lit: #3FBFA8; --lit-soft: #16332F; --stall: #E07A5F; --stall-soft: #3A241D; --marble: #7FA3E8; --code-bg: #1C2330;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #12171F; --ink: #E6EAF0; --muted: #93A0B4; --rule: #2C3543; --track: #3A4557;
+    --lit: #3FBFA8; --lit-soft: #16332F; --stall: #E07A5F; --stall-soft: #3A241D; --marble: #7FA3E8; --code-bg: #1C2330;
+  }
+  body { background: var(--ground); color: var(--ink); font-family: "Source Serif 4", Georgia, serif; font-size: 17px; line-height: 1.6; }
+  main { max-width: 72ch; margin: 0 auto; padding: 56px 24px 96px; display: flex; flex-direction: column; gap: 44px; }
+  h1, h2, h3 { font-family: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif; text-wrap: balance; line-height: 1.15; margin: 0; }
+  h1 { font-size: 40px; font-weight: 700; letter-spacing: -0.01em; }
+  h2 { font-size: 24px; font-weight: 600; padding-top: 20px; border-top: 1px solid var(--rule); }
+  h3 { font-size: 16px; font-weight: 600; }
+  p { margin: 0; }
+  .eyebrow { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  header { display: flex; flex-direction: column; gap: 14px; }
+  header p.lede { font-size: 19px; line-height: 1.45; max-width: 58ch; }
+  section { display: flex; flex-direction: column; gap: 16px; }
+  .word { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 0.9em; background: var(--code-bg); padding: 1px 6px; border-radius: 3px; white-space: nowrap; }
+  figure { margin: 0; display: flex; flex-direction: column; gap: 10px; }
+  figure svg { width: 100%; height: auto; display: block; }
+  figcaption { font-size: 14px; color: var(--muted); font-style: italic; }
+  .legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 6px 20px; font-size: 15px; }
+  .legend span:first-child { font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; }
+  .tablewrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 14.5px; font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; padding: 8px 12px 8px 0; vertical-align: top; border-bottom: 1px solid var(--rule); }
+  th { font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; font-size: 13.5px; color: var(--muted); }
+  td:first-child { font-weight: 600; white-space: nowrap; }
+  tr.key td { background: var(--lit-soft); }
+  tr.key td:first-child { border-left: 3px solid var(--lit); padding-left: 8px; }
+  tr.idle td { background: var(--code-bg); }
+  .variants { min-width: 620px; }
+  .beats { min-width: 560px; }
+  ul, ol { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; font-size: 15.5px; }
+  li::marker { color: var(--muted); }
+  .lesson { border-left: 3px solid var(--lit); padding-left: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .ask { border-left: 3px solid var(--stall); padding-left: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .ask b, .lesson b { font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 600px) { .pair { grid-template-columns: 1fr; } }
+  .pair > div { display: flex; flex-direction: column; gap: 6px; }
+  footer { font-size: 14px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 16px; }
+</style>
+
+<main>
+  <header>
+    <p class="eyebrow">Scene design &middot; 2026-09-03 &middot; concurrency, scene one</p>
+    <h1>Base Scene: Giving Up Control</h1>
+    <p class="lede">A marble reaches a point where it needs something it does not have yet, leaves the running platform, and another marble runs. Three variants, one track.</p>
+  </header>
+
+  <section>
+    <h2>The lesson</h2>
+    <div class="lesson">
+      <p><b>Misconception it corrects.</b> "My three tasks run at the same time." In asyncio and in Python threads, exactly one marble is ever on the platform. Progress comes from waits overlapping, never from runs overlapping. Go widens the platform, and even there marbles queue when the slots are full.</p>
+      <p><b>What should be burned in after staring.</b> The platform is narrow. The pockets are where time passes. A marble that becomes ready does not run until a slot opens, and in Python nothing but the running marble can open it.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>The track</h2>
+    <figure>
+      <svg viewBox="0 0 720 340" role="img" aria-label="Track layout: a runnable ramp along the bottom feeds a lift on the left, which raises marbles to a running platform across the top. The platform has slots and a trapdoor wait point. Marbles that need a reply drop through the trapdoor into waiting pockets and roll back to the ramp when the reply arrives. Marbles that finish roll off the platform end into a done tray, which recycles onto the ramp.">
+        <defs>
+          <style>
+            .t { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 11px; fill: var(--muted); }
+            .tk { fill: var(--ink); }
+            .rail { stroke: var(--track); stroke-width: 3; fill: none; }
+            .rail-lit { stroke: var(--lit); stroke-width: 3; fill: none; }
+            .thin { stroke: var(--track); stroke-width: 1.5; fill: none; }
+            .dash { stroke-dasharray: 5 4; }
+          </style>
+        </defs>
+
+        <!-- lift shaft -->
+        <rect x="150" y="80" width="22" height="210" rx="4" class="thin"/>
+        <path d="M161 282 V92" class="thin dash"/>
+        <path d="M155 100 L161 90 L167 100" class="thin"/>
+        <text x="161" y="308" text-anchor="middle" class="t">scheduler</text>
+        <text x="161" y="322" text-anchor="middle" class="t">(the lift)</text>
+
+        <!-- running platform, lit -->
+        <path d="M172 90 H330" class="rail-lit"/>
+        <path d="M352 90 H450" class="rail-lit"/>
+        <text x="250" y="66" text-anchor="middle" class="t tk">running</text>
+
+        <!-- slots -->
+        <path d="M190 96 v8 h40 v-8" class="thin"/>
+        <text x="210" y="118" text-anchor="middle" class="t">slot 1</text>
+        <path d="M244 96 v8 h40 v-8" class="thin dash"/>
+        <text x="264" y="118" text-anchor="middle" class="t">slot 2 (Go)</text>
+
+        <!-- trapdoor / wait point -->
+        <path d="M330 90 L346 104" class="rail-lit"/>
+        <circle cx="330" cy="90" r="3" fill="var(--ink)"/>
+        <text x="341" y="52" text-anchor="middle" class="t tk">wait point</text>
+        <text x="341" y="66" text-anchor="middle" class="t">(trapdoor, open if the</text>
+        <text x="341" y="79" text-anchor="middle" class="t">marble still needs a reply)</text>
+
+        <!-- pockets -->
+        <path d="M312 130 v28 a14 14 0 0 0 28 0 v-28" class="rail"/>
+        <path d="M356 130 v28 a14 14 0 0 0 28 0 v-28" class="rail"/>
+        <path d="M400 130 v28 a14 14 0 0 0 28 0 v-28" class="rail"/>
+        <!-- timer arcs on pockets -->
+        <path d="M326 122 a6 6 0 1 1 0.1 0" class="thin"/>
+        <path d="M370 122 a6 6 0 1 1 0.1 0" class="thin"/>
+        <path d="M414 122 a6 6 0 1 1 0.1 0" class="thin"/>
+        <text x="370" y="196" text-anchor="middle" class="t tk">waiting</text>
+        <text x="370" y="210" text-anchor="middle" class="t">(pockets, one timer each)</text>
+
+        <!-- outside world feeding replies -->
+        <rect x="470" y="128" width="70" height="44" rx="4" class="thin dash"/>
+        <text x="505" y="146" text-anchor="middle" class="t">outside</text>
+        <text x="505" y="160" text-anchor="middle" class="t">world</text>
+        <path d="M470 150 H440" class="thin dash"/>
+        <path d="M446 146 L440 150 L446 154" class="thin"/>
+
+        <!-- pocket exits down to ramp -->
+        <path d="M326 172 V236" class="thin"/>
+        <path d="M370 172 V236" class="thin"/>
+        <path d="M414 172 V236" class="thin"/>
+        <path d="M300 236 H440" class="thin"/>
+        <path d="M300 236 L290 250 L280 262" class="thin"/>
+
+        <!-- done tray -->
+        <path d="M450 90 C480 90 500 110 500 140 V180" class="rail"/>
+        <path d="M486 182 h28 v14 h-28 z" class="rail"/>
+        <text x="540" y="192" class="t tk">done</text>
+        <path d="M500 196 V262" class="thin dash"/>
+        <text x="540" y="240" class="t">(tray tips, three</text>
+        <text x="540" y="254" class="t">new marbles created)</text>
+
+        <!-- runnable ramp along bottom, right to left into the lift -->
+        <path d="M520 262 H172" class="rail"/>
+        <path d="M184 256 L174 262 L184 268" class="thin"/>
+        <text x="346" y="290" text-anchor="middle" class="t tk">runnable</text>
+        <text x="346" y="304" text-anchor="middle" class="t">(ramp, first in first out)</text>
+        <text x="600" y="266" class="t">created</text>
+
+        <!-- marbles: A on platform (accent), B in pocket 1, C on ramp -->
+        <circle cx="210" cy="82" r="8" fill="var(--lit)"/>
+        <circle cx="210" cy="82" r="1.6" fill="var(--ground)"/>
+        <circle cx="326" cy="156" r="8" fill="var(--marble)"/>
+        <circle cx="322.5" cy="156" r="1.6" fill="var(--ground)"/><circle cx="329.5" cy="156" r="1.6" fill="var(--ground)"/>
+        <circle cx="200" cy="254" r="8" fill="var(--marble)"/>
+        <circle cx="195" cy="254" r="1.6" fill="var(--ground)"/><circle cx="200" cy="254" r="1.6" fill="var(--ground)"/><circle cx="205" cy="254" r="1.6" fill="var(--ground)"/>
+      </svg>
+      <figcaption>The loop, read clockwise from the lift. Marbles carry one, two, or three dots so they can be followed without colour. The accent marks whatever is running. Slot two exists only in the Go variant.</figcaption>
+    </figure>
+    <div class="legend">
+      <span>Ramp</span><span>runnable, in arrival order</span>
+      <span>Lift</span><span>the scheduler; raises the front marble when a slot is free</span>
+      <span>Platform</span><span>running; as many slots as there are executors</span>
+      <span>Trapdoor</span><span>the wait point; opens for a marble that still needs its reply</span>
+      <span>Pocket</span><span>waiting; a timer counts down to the reply</span>
+      <span>Outside world</span><span>where replies come from, never on the platform</span>
+      <span>Tray</span><span>done; tips to create the next three marbles</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>The three variants</h2>
+    <p>Every row is a real property of the runtime, not a metaphor. The slot is named for the thing that admits a marble to run. The words are the ones each runtime's own docs and source use.</p>
+    <div class="tablewrap">
+      <table class="variants">
+        <thead><tr><th></th><th>Python threads</th><th>Python asyncio</th><th>Go</th></tr></thead>
+        <tbody>
+          <tr><td>The marble is a</td><td>thread</td><td>task</td><td>goroutine</td></tr>
+          <tr><td>Marble weight</td><td>heavy (large)</td><td>light (small)</td><td>light (small)</td></tr>
+          <tr><td>Slots on the platform</td><td>1</td><td>1</td><td>2</td></tr>
+          <tr><td>The slot is</td><td>the GIL</td><td>the loop</td><td>a P</td></tr>
+          <tr><td>The lift is</td><td>the OS scheduler</td><td>the event loop</td><td>the runtime scheduler</td></tr>
+          <tr><td>Lift moves when</td><td>the slot is free</td><td>the slot is free</td><td>a slot is free</td></tr>
+          <tr><td>Word at the trapdoor</td><td><span class="word">blocks</span> and releases the GIL</td><td><span class="word">await</span></td><td><span class="word">parks</span></td></tr>
+          <tr><td>Word when the reply lands</td><td><span class="word">runnable</span></td><td><span class="word">ready</span></td><td><span class="word">runnable</span></td></tr>
+          <tr><td>Word on the platform</td><td><span class="word">holds the GIL</span></td><td><span class="word">running</span></td><td><span class="word">running on a P</span></td></tr>
+          <tr><td>Word at the tray</td><td><span class="word">exits</span></td><td><span class="word">done</span></td><td><span class="word">returns</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Threads and asyncio produce the same schedule in this scene. That is deliberate and true: for work that only waits on replies, one slot is one slot. What differs is who owns the lift, what the slot is called, and how heavy the marble is. The difference in behaviour arrives in scene two, when a marble refuses to yield.</p>
+  </section>
+
+  <section>
+    <h2>The skeleton and the beats</h2>
+    <p>Each marble has the same authored skeleton: run one tick to reach the trapdoor, wait two ticks for a reply, run two ticks to finish. The schedule is derived from that skeleton by the variant's rules: slot count, and lift moves only when a slot is free. Deriving it, rather than hand-writing three schedules, is what lets a toggle mid-run recompute the future from the current state without resetting.</p>
+
+    <h3>Python asyncio and Python threads, one slot</h3>
+    <div class="tablewrap">
+      <table class="beats">
+        <thead><tr><th>Tick</th><th>Platform</th><th>Pockets</th><th>Ramp</th><th>Done</th><th>What just happened</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>&#9679;</td><td></td><td>&#9679;&#9679; &#9679;&#9679;&#9679;</td><td></td><td>Lift raises one-dot. <span class="word">running</span></td></tr>
+          <tr><td>2</td><td>&#9679;&#9679;</td><td>&#9679;</td><td>&#9679;&#9679;&#9679;</td><td></td><td>One-dot hits the trapdoor. <span class="word">await</span>. Lift raises two-dot.</td></tr>
+          <tr><td>3</td><td>&#9679;&#9679;&#9679;</td><td>&#9679; &#9679;&#9679;</td><td></td><td></td><td>Two-dot <span class="word">await</span>. Lift raises three-dot.</td></tr>
+          <tr><td>4</td><td>&#9679;</td><td>&#9679;&#9679; &#9679;&#9679;&#9679;</td><td></td><td></td><td>Three-dot <span class="word">await</span>. One-dot's reply lands, <span class="word">ready</span>, and the slot is free, so it is raised at once.</td></tr>
+          <tr class="key"><td>5</td><td>&#9679;</td><td>&#9679;&#9679;&#9679;</td><td>&#9679;&#9679;</td><td></td><td>Two-dot's reply lands. <span class="word">ready</span>. The slot is taken. The lift holds. This is the beat to stare at.</td></tr>
+          <tr><td>6</td><td>&#9679;&#9679;</td><td></td><td>&#9679;&#9679;&#9679;</td><td>&#9679;</td><td>One-dot rolls into the tray. <span class="word">done</span>. Three-dot's reply lands. Lift raises two-dot.</td></tr>
+          <tr><td>7</td><td>&#9679;&#9679;</td><td></td><td>&#9679;&#9679;&#9679;</td><td>&#9679;</td><td>Two-dot keeps running. Three-dot keeps waiting on the ramp.</td></tr>
+          <tr><td>8</td><td>&#9679;&#9679;&#9679;</td><td></td><td></td><td>&#9679; &#9679;&#9679;</td><td>Two-dot <span class="word">done</span>. Lift raises three-dot.</td></tr>
+          <tr><td>9</td><td>&#9679;&#9679;&#9679;</td><td></td><td></td><td>&#9679; &#9679;&#9679;</td><td>Three-dot keeps running. The ramp and pockets are empty.</td></tr>
+          <tr><td>10</td><td></td><td></td><td>&#9679; &#9679;&#9679; &#9679;&#9679;&#9679;</td><td></td><td>Three-dot <span class="word">done</span>. The tray tips. Three marbles are created on the ramp. Loop.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Go, two slots</h3>
+    <div class="tablewrap">
+      <table class="beats">
+        <thead><tr><th>Tick</th><th>Platform</th><th>Pockets</th><th>Ramp</th><th>Done</th><th>What just happened</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>&#9679; &#9679;&#9679;</td><td></td><td>&#9679;&#9679;&#9679;</td><td></td><td>Lift raises one-dot and two-dot. Two marbles <span class="word">running on a P</span>.</td></tr>
+          <tr><td>2</td><td>&#9679;&#9679;&#9679;</td><td>&#9679; &#9679;&#9679;</td><td></td><td></td><td>Both <span class="word">park</span>. Lift raises three-dot. Slot two sits empty: nothing is runnable.</td></tr>
+          <tr class="idle"><td>3</td><td></td><td>&#9679; &#9679;&#9679; &#9679;&#9679;&#9679;</td><td></td><td></td><td>Three-dot <span class="word">parks</span>. Every marble is waiting. The platform is empty. Nothing runs.</td></tr>
+          <tr><td>4</td><td>&#9679; &#9679;&#9679;</td><td>&#9679;&#9679;&#9679;</td><td></td><td></td><td>Two replies land. Both <span class="word">runnable</span>, both raised.</td></tr>
+          <tr class="key"><td>5</td><td>&#9679; &#9679;&#9679;</td><td></td><td>&#9679;&#9679;&#9679;</td><td></td><td>Three-dot's reply lands. Both slots are taken. It waits on the ramp. Even Go queues.</td></tr>
+          <tr><td>6</td><td>&#9679;&#9679;&#9679;</td><td></td><td></td><td>&#9679; &#9679;&#9679;</td><td>Two marbles <span class="word">return</span>. Lift raises three-dot.</td></tr>
+          <tr><td>7</td><td>&#9679;&#9679;&#9679;</td><td></td><td></td><td>&#9679; &#9679;&#9679;</td><td>Three-dot keeps running, alone on a wide platform.</td></tr>
+          <tr><td>8</td><td></td><td></td><td>&#9679; &#9679;&#9679; &#9679;&#9679;&#9679;</td><td></td><td>Three-dot <span class="word">returns</span>. Tray tips. Loop.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Two things fall out of the derivation without being designed. Go finishes the cycle in eight ticks against ten, which you see as the loop simply coming round sooner. And Go has a beat where the whole machine is idle, because the waits happened to line up, which is the honest picture of an IO-bound program.</p>
+  </section>
+
+  <section>
+    <h2>Morph rules</h2>
+    <p>Toggling a variant changes parameters, and the scene continues from its current state. Nothing is reset. Marbles keep their dots and their position.</p>
+    <ul>
+      <li>Slot count changes. Going to two slots, the lift immediately raises the front marble if one is runnable. Going to one slot, the marble in slot two rolls back to the front of the ramp. That is the one moment a marble moves backward, and it is labelled so.</li>
+      <li>Marble size tweens between heavy and light over one tick.</li>
+      <li>Words swap in place. If a marble is mid-drop through the trapdoor, the word changes mid-air.</li>
+      <li>Pocket timers keep counting. A reply is a reply in every runtime.</li>
+      <li>Slot and lift labels swap. The GIL becomes the loop becomes a P.</li>
+      <li>The other two variants' paths stay drawn and dim. Slot two is visible in every variant, dashed, so the toggle to Go is a slot filling in rather than appearing.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Timing and rhythm</h2>
+    <div class="pair">
+      <div>
+        <h3>The beat</h3>
+        <p>One tick is one held picture. Hold for about a second, then roughly four tenths of a second of movement into the next. A caught frame is always a held state, never a marble mid-air, except during the movement window.</p>
+      </div>
+      <div>
+        <h3>The cycle</h3>
+        <p>About fourteen seconds in the Python variants and eleven in Go. Long enough to be a scene, short enough to be seen many times in a sitting.</p>
+      </div>
+      <div>
+        <h3>The word</h3>
+        <p>Appears next to the marble at the moment of the transition and fades over the following tick. It is the only text that moves.</p>
+      </div>
+      <div>
+        <h3>Jitter</h3>
+        <p>None in the proof of concept. Reply times are fixed so the loop is identical every cycle. Jitter is a later switch, and when it comes it belongs on the outside world, not the runtime.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Deliberately left out</h2>
+    <ul>
+      <li>No gate. All three variants can give up control at a wait point, so no marble stalls in this scene. The gate arrives in the parallelism scene, where a Python thread reaches CPU work and the GIL holds it.</li>
+      <li>No preemption. The lift has no timer here. Scene two adds a marble that never reaches the trapdoor and shows which lifts can pull it off anyway.</li>
+      <li>No code. The words are the vocabulary of the runtime, not syntax. A hover whisper with the actual line can come later.</li>
+      <li>No predict card yet. The natural place is tick five, asking whether the ready marble runs now. Add once the loop is watchable.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Calls made</h2>
+    <ul>
+      <li>The marble waits for a reply from the outside world, drawn as a box beside the pockets. A small hollow dot travels from the box to the pocket when the reply lands.</li>
+      <li>Thread marbles are drawn heavy. In this scene it changes nothing about the schedule, and that is the point: toggling threads to asyncio changes the words and the weight and nothing else.</li>
+      <li>Slot two is a dashed slot visible in every variant and solid in Go. The platform never widens; a path fills in.</li>
+    </ul>
+    <p>The proof of concept is built from this page: <a href="https://claude.ai/code/artifact/08fc5f74-e90c-4610-82e9-6da2d6cfdfb7">Giving Up Control</a>.</p>
+  </section>
+
+  <footer>Designed on paper on 2026-09-03. No tooling chosen. The skeleton, slot rules, and vocabulary are the contract; how the trace is computed can change.</footer>
+</main>

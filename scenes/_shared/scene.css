@@ -1,0 +1,86 @@
+/* Design tokens for every scene. Light on bare :root, dark by media query and by explicit theme stamp. */
+:root {
+  --ll-ground: #F3F5F7; --ll-ink: #172033; --ll-muted: #64708A; --ll-rule: #D3D9E2; --ll-track: #B8C1CF;
+  --ll-lit: #0F7B6C; --ll-lit-soft: #D6EDE8; --ll-stall: #B4472F; --ll-marble: #2B4C8C; --ll-code-bg: #E8ECF1; --ll-btn: #FFFFFF;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ll-ground: #12171F; --ll-ink: #E6EAF0; --ll-muted: #93A0B4; --ll-rule: #2C3543; --ll-track: #3A4557;
+    --ll-lit: #3FBFA8; --ll-lit-soft: #16332F; --ll-stall: #E07A5F; --ll-marble: #7FA3E8; --ll-code-bg: #1C2330; --ll-btn: #1C2330;
+  }
+}
+:root[data-theme="dark"] {
+  --ll-ground: #12171F; --ll-ink: #E6EAF0; --ll-muted: #93A0B4; --ll-rule: #2C3543; --ll-track: #3A4557;
+  --ll-lit: #3FBFA8; --ll-lit-soft: #16332F; --ll-stall: #E07A5F; --ll-marble: #7FA3E8; --ll-code-bg: #1C2330; --ll-btn: #1C2330;
+}
+
+loop-scene { display: flex; flex-direction: column; gap: 18px; color: var(--ll-ink); font-family: "Source Serif 4", Georgia, serif; font-size: 16px; line-height: 1.55; }
+loop-scene p { margin: 0; }
+loop-scene .ll-eyebrow { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ll-muted); }
+loop-scene .ll-controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
+loop-scene .ll-seg { display: inline-flex; border: 1px solid var(--ll-rule); border-radius: 6px; overflow: hidden; }
+loop-scene .ll-seg button { font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; font-size: 14px; padding: 8px 14px; border: 0; background: var(--ll-btn); color: var(--ll-muted); cursor: pointer; }
+loop-scene .ll-seg button + button { border-left: 1px solid var(--ll-rule); }
+loop-scene .ll-seg button[aria-pressed="true"] { background: var(--ll-lit-soft); color: var(--ll-lit); }
+loop-scene .ll-seg button:focus-visible { outline: 2px solid var(--ll-lit); outline-offset: -2px; }
+loop-scene .ll-btn { font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; font-size: 14px; padding: 8px 14px; border: 1px solid var(--ll-rule); border-radius: 6px; background: var(--ll-btn); color: var(--ll-ink); cursor: pointer; }
+loop-scene .ll-btn:focus-visible { outline: 2px solid var(--ll-lit); outline-offset: 1px; }
+loop-scene label.ll-speed { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 12px; color: var(--ll-muted); display: inline-flex; gap: 8px; align-items: center; }
+loop-scene select { font-family: "Bricolage Grotesque", sans-serif; font-size: 14px; padding: 6px 8px; border: 1px solid var(--ll-rule); border-radius: 6px; background: var(--ll-btn); color: var(--ll-ink); }
+loop-scene .ll-tick { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 12px; color: var(--ll-muted); margin-left: auto; font-variant-numeric: tabular-nums; }
+loop-scene .ll-note { font-size: 15px; color: var(--ll-muted); margin-top: -8px; }
+
+loop-scene .ll-scene { border: 1px solid var(--ll-rule); border-radius: 8px; background: var(--ll-ground); padding: 6px; display: flex; flex-direction: column; gap: 4px; }
+loop-scene svg { width: 100%; height: auto; display: block; }
+loop-scene .t { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 11px; fill: var(--ll-muted); }
+loop-scene .tk { fill: var(--ll-ink); }
+loop-scene .rail { stroke: var(--ll-track); stroke-width: 3; fill: none; }
+loop-scene .rail-lit { stroke: var(--ll-lit); stroke-width: 3; fill: none; transition: stroke 400ms; }
+loop-scene svg.idle .rail-lit { stroke: var(--ll-track); }
+loop-scene .thin { stroke: var(--ll-track); stroke-width: 1.5; fill: none; }
+loop-scene .dash { stroke-dasharray: 5 4; }
+loop-scene .lane2 .rail-lit { stroke-dasharray: 5 4; stroke: var(--ll-track); transition: stroke 400ms; }
+loop-scene .lane2.on .rail-lit { stroke-dasharray: 0; stroke: var(--ll-lit); }
+loop-scene svg.idle .lane2.on .rail-lit { stroke: var(--ll-track); }
+loop-scene .lane2 circle { opacity: 0; transition: opacity 400ms; }
+loop-scene .lane2.on circle { opacity: 1; }
+loop-scene .ring { fill: none; stroke: var(--ll-track); stroke-width: 2; }
+loop-scene .ring-fill { fill: none; stroke: var(--ll-marble); stroke-width: 2; transition: stroke-dashoffset 400ms; transform: rotate(-90deg); transform-box: fill-box; transform-origin: center; }
+loop-scene .gate { stroke: var(--ll-stall); stroke-width: 3; fill: none; opacity: 0; transition: opacity 300ms; }
+loop-scene svg.held .gate { opacity: 1; }
+loop-scene .carriage { fill: var(--ll-track); transition: fill 300ms; }
+loop-scene svg.held .carriage { fill: var(--ll-stall); }
+loop-scene .dial { opacity: 0; transition: opacity 400ms; }
+loop-scene .dial.on { opacity: 1; }
+loop-scene .marble { will-change: transform; }
+loop-scene .marble .body { transition: transform 400ms; }
+loop-scene .marble circle.m { fill: var(--ll-marble); transition: fill 300ms; }
+loop-scene .marble.lit circle.m { fill: var(--ll-lit); }
+loop-scene .marble circle.d { fill: var(--ll-ground); }
+loop-scene .word { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 12px; font-weight: 500; fill: var(--ll-lit); animation: ll-wordfade var(--ll-wordms, 1200ms) ease-out forwards; }
+loop-scene .word.hold { fill: var(--ll-stall); }
+loop-scene .reply { fill: var(--ll-marble); stroke: var(--ll-ground); stroke-width: 1.5; }
+@keyframes ll-wordfade { 0% { opacity: 0; transform: translateY(4px); } 15% { opacity: 1; transform: translateY(0); } 75% { opacity: 1; } 100% { opacity: 0; transform: translateY(-6px); } }
+@media (prefers-reduced-motion: reduce) { loop-scene .marble .body, loop-scene .ring-fill, loop-scene .rail-lit { transition: none; } }
+
+loop-scene .ll-trace-wrap { border-top: 1px solid var(--ll-rule); padding-top: 6px; }
+loop-scene .cell-run { fill: var(--ll-lit); }
+loop-scene .cell-wait { fill: none; stroke: var(--ll-marble); stroke-width: 1.2; }
+loop-scene .cell-ready { fill: var(--ll-track); }
+loop-scene .cycle { stroke: var(--ll-rule); stroke-width: 1; stroke-dasharray: 2 3; }
+loop-scene .vmark { fill: var(--ll-stall); }
+loop-scene .ll-tkey { display: flex; flex-wrap: wrap; gap: 6px 16px; font-family: "IBM Plex Mono", Menlo, monospace; font-size: 11px; color: var(--ll-muted); padding: 2px 6px 4px; align-items: center; }
+loop-scene .ll-tkey i { display: inline-block; width: 14px; height: 9px; margin-right: 5px; vertical-align: -1px; }
+loop-scene .ll-tkey .k-run { background: var(--ll-lit); }
+loop-scene .ll-tkey .k-wait { border: 1.2px solid var(--ll-marble); box-sizing: border-box; }
+loop-scene .ll-tkey .k-ready { background: var(--ll-track); }
+
+loop-scene .ll-caption { min-height: 2.6em; font-size: 16px; }
+loop-scene .ll-caption b { font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; color: var(--ll-lit); }
+loop-scene .ll-caption b.hold { color: var(--ll-stall); }
+loop-scene .ll-legend { display: grid; grid-template-columns: 150px 1fr; gap: 8px 18px; font-size: 14.5px; border-top: 1px solid var(--ll-rule); padding-top: 14px; }
+@media (max-width: 560px) { loop-scene .ll-legend { grid-template-columns: 1fr; gap: 2px 0; } loop-scene .ll-legend .g { margin-bottom: 8px; } }
+loop-scene .ll-legend .k { font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; }
+loop-scene .ll-legend .w { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 0.9em; background: var(--ll-code-bg); padding: 1px 6px; border-radius: 3px; }
+loop-scene .ll-legend .g { color: var(--ll-muted); }
+loop-scene .ll-look { border-left: 3px solid var(--ll-lit); padding-left: 14px; font-size: 15px; color: var(--ll-muted); max-width: 66ch; }

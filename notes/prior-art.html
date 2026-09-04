@@ -1,0 +1,241 @@
+<title>Prior Art for Language Universe</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --ground: #F3F5F7;
+    --ink: #172033;
+    --muted: #64708A;
+    --rule: #D3D9E2;
+    --track: #B8C1CF;
+    --lit: #0F7B6C;
+    --lit-soft: #D6EDE8;
+    --stall: #B4472F;
+    --stall-soft: #F3DDD6;
+    --marble: #2B4C8C;
+    --code-bg: #E8ECF1;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #12171F; --ink: #E6EAF0; --muted: #93A0B4; --rule: #2C3543; --track: #3A4557;
+      --lit: #3FBFA8; --lit-soft: #16332F; --stall: #E07A5F; --stall-soft: #3A241D; --marble: #7FA3E8; --code-bg: #1C2330;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #12171F; --ink: #E6EAF0; --muted: #93A0B4; --rule: #2C3543; --track: #3A4557;
+    --lit: #3FBFA8; --lit-soft: #16332F; --stall: #E07A5F; --stall-soft: #3A241D; --marble: #7FA3E8; --code-bg: #1C2330;
+  }
+  body { background: var(--ground); color: var(--ink); font-family: "Source Serif 4", Georgia, serif; font-size: 17px; line-height: 1.6; }
+  main { max-width: 72ch; margin: 0 auto; padding: 56px 24px 96px; display: flex; flex-direction: column; gap: 44px; }
+  h1, h2 { font-family: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif; text-wrap: balance; line-height: 1.1; margin: 0; }
+  h1 { font-size: 40px; font-weight: 700; letter-spacing: -0.01em; }
+  h2 { font-size: 22px; font-weight: 600; padding-top: 20px; border-top: 1px solid var(--rule); }
+  p { margin: 0; }
+  a { color: var(--ink); text-decoration-color: var(--track); text-underline-offset: 3px; }
+  a:hover, a:focus-visible { text-decoration-color: var(--lit); outline: none; }
+  .eyebrow { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  header { display: flex; flex-direction: column; gap: 14px; }
+  header p.lede { font-size: 19px; line-height: 1.45; max-width: 58ch; }
+  section { display: flex; flex-direction: column; gap: 16px; }
+  .bar { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  @media (max-width: 600px) { .bar { grid-template-columns: 1fr; } }
+  .bar div { display: flex; flex-direction: column; gap: 4px; font-size: 15px; }
+  .bar b { font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; }
+  .key { display: flex; flex-wrap: wrap; gap: 8px 14px; font-size: 13px; color: var(--muted); align-items: center; }
+  .chip { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 11.5px; letter-spacing: 0.02em; padding: 2px 8px; border-radius: 3px; background: var(--code-bg); color: var(--muted); white-space: nowrap; }
+  .chip.loop { background: var(--lit-soft); color: var(--lit); }
+  .chip.none { background: var(--stall-soft); color: var(--stall); }
+  ol.rank { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+  ol.rank li { display: grid; grid-template-columns: 40px 1fr; gap: 0 14px; padding: 16px 0; border-bottom: 1px solid var(--rule); }
+  ol.rank li:last-child { border-bottom: 0; }
+  .n { font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; font-size: 22px; line-height: 1.2; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .entry { display: flex; flex-direction: column; gap: 6px; }
+  .entry .title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; }
+  .entry .title a { font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; font-size: 18px; }
+  .entry .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .entry p { font-size: 15.5px; }
+  .entry p.verdict { color: var(--muted); font-style: italic; }
+  .tier { padding-top: 22px; }
+  .tier:first-child { padding-top: 0; }
+  .tier h3 { font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; font-size: 15px; margin: 0 0 4px; color: var(--muted); letter-spacing: 0.02em; }
+  .gap { border-left: 3px solid var(--lit); padding-left: 14px; display: flex; flex-direction: column; gap: 10px; }
+  ul { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; font-size: 15.5px; }
+  li::marker { color: var(--muted); }
+  footer { font-size: 14px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 16px; }
+</style>
+
+<main>
+  <header>
+    <p class="eyebrow">Survey &middot; 2026-09-03 &middot; companion to the concept note</p>
+    <h1>Prior Art for Language Universe</h1>
+    <p class="lede">What already exists that teaches an abstract programming concept through a rich visual loop, ranked against the bar the concept sets. Syntax tutorials and static diagrams were excluded.</p>
+  </header>
+
+  <section>
+    <h2>The bar</h2>
+    <div class="bar">
+      <div><b>Loop</b><span>Does it move on its own, so you can stare at it? Play-once and step-through count less. Hover-only counts least.</span></div>
+      <div><b>One concept</b><span>Does a single view isolate one mechanism, rather than being a general tool you pour code into?</span></div>
+      <div><b>Language constraint</b><span>Is the concept shown through a real language's rules, so the scene would differ in another language?</span></div>
+    </div>
+    <div class="key">
+      <span>Loop chip:</span>
+      <span class="chip loop">self-running</span>
+      <span class="chip">play once</span>
+      <span class="chip">step</span>
+      <span class="chip none">hover only</span>
+      <span>Others name the language and whether it costs money.</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Ranked</h2>
+
+    <div class="tier">
+      <h3>Closest to the idea</h3>
+      <ol class="rank">
+        <li><span class="n">1</span><div class="entry">
+          <div class="title"><a href="https://samwho.dev">samwho.dev</a><span class="chips"><span class="chip loop">self-running</span><span class="chip">agnostic</span><span class="chip">free</span></span></div>
+          <p>Sam Rose's essays on queueing, load balancing, memory allocation, hashing, retries, and Bloom filters. Each page is one custom simulation. Some keep running while you read, like queueing and load balancing, and others wait for a click, and all respond to controls placed right under them.</p>
+          <p class="verdict">The best example of the ambient loop and the one-concept discipline. It is language-agnostic, so it never shows a constraint. Study its pacing and restraint.</p>
+        </div></li>
+        <li><span class="n">2</span><div class="entry">
+          <div class="title"><a href="https://divan.dev/posts/go_concurrency_visualize/">Visualizing Concurrency in Go</a><span class="chips"><span class="chip">play once</span><span class="chip">Go</span><span class="chip">free</span></span></div>
+          <p>Ivan Danyliuk's 2016 post with a WebGL demo per concurrency pattern, generated from Go's real execution tracer: goroutine lifetimes as lines, channel sends as arrows, fan-in, worker pools, the prime sieve, and the effect of GOMAXPROCS.</p>
+          <p class="verdict">The closest thing to a marble run under a real language's rules. Rotatable, speed-controlled, one pattern per demo. Aging visuals, and only one language.</p>
+        </div></li>
+        <li><span class="n">3</span><div class="entry">
+          <div class="title"><a href="https://www.jsv9000.app/">JS Visualizer 9000</a><span class="chips"><span class="chip">play once</span><span class="chip">JavaScript</span><span class="chip">free</span></span></div>
+          <p>A modern successor to Loupe. Paste code and watch the call stack, Web APIs, microtask queue, and task queue move, with autoplay and speed control.</p>
+          <p class="verdict">One mechanism, one language, animated on its own once started. The cleanest event-loop scene available.</p>
+        </div></li>
+        <li><span class="n">4</span><div class="entry">
+          <div class="title"><a href="http://latentflip.com/loupe/">Loupe</a><span class="chips"><span class="chip">play once</span><span class="chip">JavaScript</span><span class="chip">free</span></span></div>
+          <p>Philip Roberts' original event-loop visualizer from the talk that made the concept famous. Boxes move onto the stack, out to Web APIs, into the queue, and back.</p>
+          <p class="verdict">Dated, but it is the ancestor of every event-loop scene and still reads clearly.</p>
+        </div></li>
+        <li><span class="n">5</span><div class="entry">
+          <div class="title"><a href="https://dev.to/lydiahallie/javascript-visualized-event-loop-3dif">JavaScript Visualized</a><span class="chips"><span class="chip loop">self-running</span><span class="chip">JavaScript</span><span class="chip">free</span></span></div>
+          <p>Lydia Hallie's series of looping GIFs, one concept per post: event loop, closures, generators, prototypes, promises. Hand-made in Keynote.</p>
+          <p class="verdict">Literally a loop you stare at, per concept, per language rule. No interactivity, no toggling, and deliberately low-fi. The most popular proof that people want exactly this.</p>
+        </div></li>
+      </ol>
+    </div>
+
+    <div class="tier">
+      <h3>Strong on the loop, weak on the language</h3>
+      <ol class="rank" start="6">
+        <li><span class="n">6</span><div class="entry">
+          <div class="title"><a href="https://www.toptal.com/developers/sorting-algorithms">Sorting Algorithms Animations</a><span class="chips"><span class="chip loop">self-running</span><span class="chip">agnostic</span><span class="chip">free</span></span></div>
+          <p>Eight sorting algorithms race side by side on four kinds of input. Press play all and watch.</p>
+          <p class="verdict">Satisfying ambient comparison of variants on one scene. The variants are algorithms, not languages.</p>
+        </div></li>
+        <li><span class="n">7</span><div class="entry">
+          <div class="title"><a href="https://visualgo.net/en/recursion">VisuAlgo Recursion Tree</a><span class="chips"><span class="chip">play once</span><span class="chip">JavaScript</span><span class="chip">free</span></span></div>
+          <p>Write a recursive function and watch the call tree build depth-first with colour-coded nodes and return values. Part of a large, long-maintained suite from the National University of Singapore.</p>
+          <p class="verdict">Polished and isolated. Academic in feel.</p>
+        </div></li>
+        <li><span class="n">8</span><div class="entry">
+          <div class="title"><a href="https://spin.atomicobject.com/visualizing-garbage-collection-algorithms/">Garbage Collection Animations</a><span class="chips"><span class="chip loop">self-running</span><span class="chip">agnostic</span><span class="chip">free</span></span></div>
+          <p>Looping GIFs generated from instrumented runs, showing memory reads and writes as decaying colour flashes under reference counting, mark-sweep, mark-compact, and copying collection.</p>
+          <p class="verdict">Each algorithm has a visible fingerprint. Passive, but a good model for what one variant of a scene could look like.</p>
+        </div></li>
+        <li><span class="n">9</span><div class="entry">
+          <div class="title"><a href="https://thesecretlivesofdata.com/raft/">The Secret Lives of Data: Raft</a><span class="chips"><span class="chip">play once</span><span class="chip">agnostic</span><span class="chip">free</span></span></div>
+          <p>A scrubbable, scripted walk through leader election and log replication across five servers.</p>
+          <p class="verdict">Restrained and widely admired. Guided rather than ambient.</p>
+        </div></li>
+        <li><span class="n">10</span><div class="entry">
+          <div class="title"><a href="https://devops-daily.com/games/javascript-promises-async-await-simulator">Await Simulator</a><span class="chips"><span class="chip">play once</span><span class="chip">JavaScript</span><span class="chip">free</span></span></div>
+          <p>Four scripted event-loop scenarios covering microtasks beating timers, await suspending a function, rejections jumping to catch, and Promise combinators, with a predict-then-reveal pause at the fork.</p>
+          <p class="verdict">The prediction mechanic is worth stealing. Otherwise a tidier Loupe.</p>
+        </div></li>
+      </ol>
+    </div>
+
+    <div class="tier">
+      <h3>Strong on the language constraint, weak on the loop</h3>
+      <ol class="rank" start="11">
+        <li><span class="n">11</span><div class="entry">
+          <div class="title"><a href="https://coroutine-playground.netlify.app/">Kotlin Coroutines Visualizer</a><span class="chips"><span class="chip">play once</span><span class="chip">Kotlin</span><span class="chip">free</span></span></div>
+          <p>One animated panel per coroutine primitive: launch, async, runBlocking, withContext, Channel, Flow, SharedFlow, StateFlow. Its roadmap promises the same scenes for JavaScript, C#, Go, and Rust.</p>
+          <p class="verdict">The only project found that is heading toward variants of one scene across languages. Indie, incomplete, and each panel plays once on click.</p>
+        </div></li>
+        <li><span class="n">12</span><div class="entry">
+          <div class="title"><a href="https://rust-book.cs.brown.edu/">Aquascope</a><span class="chips"><span class="chip">step</span><span class="chip">Rust</span><span class="chip">free</span></span></div>
+          <p>Brown University's experimental Rust Book, where the ownership chapter shows borrow-checker permissions changing line by line, plus a runtime view of stack and heap.</p>
+          <p class="verdict">The best example of a concept that only exists because of a language's rules, drawn precisely. No motion.</p>
+        </div></li>
+        <li><span class="n">13</span><div class="entry">
+          <div class="title"><a href="https://rustviz.github.io/">RustViz</a><span class="chips"><span class="chip none">hover only</span><span class="chip">Rust</span><span class="chip">free</span></span></div>
+          <p>Paste a Rust snippet and get a timeline of when each binding acquires ownership and when borrows begin and end, with hover tooltips tied to source lines.</p>
+          <p class="verdict">Clean timeline grammar, worth looking at for how it draws a lifetime. Static.</p>
+        </div></li>
+        <li><span class="n">14</span><div class="entry">
+          <div class="title"><a href="https://www.codevisualizer.app/">Code Visualizer</a><span class="chips"><span class="chip">step</span><span class="chip">JS, Python, Java, C, C++</span><span class="chip">free</span></span></div>
+          <p>Claims to show each language's runtime internals side by side: the JavaScript event loop, Python's Global Interpreter Lock, Java's garbage collector generations, plus stack and heap.</p>
+          <p class="verdict">Conceptually the nearest neighbour to comparing language constraints on one concept. Step-through, and craft could not be confirmed from the page.</p>
+        </div></li>
+        <li><span class="n">15</span><div class="entry">
+          <div class="title"><a href="https://deadlockempire.github.io/">The Deadlock Empire</a><span class="chips"><span class="chip">step</span><span class="chip">pseudo C#</span><span class="chip">free</span></span></div>
+          <p>A puzzle game where you play the scheduler and choose which thread runs next, trying to force a deadlock, race, or missed signal in each level.</p>
+          <p class="verdict">One bug pattern per level, clever role reversal. Plain Bootstrap visuals and no motion.</p>
+        </div></li>
+      </ol>
+    </div>
+
+    <div class="tier">
+      <h3>High craft, different job</h3>
+      <ol class="rank" start="16">
+        <li><span class="n">16</span><div class="entry">
+          <div class="title"><a href="https://www.joshwcomeau.com/react/why-react-re-renders/">Josh Comeau's interactive articles</a><span class="chips"><span class="chip">step</span><span class="chip">JavaScript, CSS</span><span class="chip">free</span></span></div>
+          <p>Custom React widgets embedded in prose, like a component tree that flashes on re-render, or a scrubbable transition timeline.</p>
+          <p class="verdict">The production standard for widgets inside an essay. Reader-driven, not ambient.</p>
+        </div></li>
+        <li><span class="n">17</span><div class="entry">
+          <div class="title"><a href="https://www.redblobgames.com/">Red Blob Games</a><span class="chips"><span class="chip">step</span><span class="chip">agnostic</span><span class="chip">free</span></span></div>
+          <p>Amit Patel's pathfinding, hex grid, and map generation articles, each built around a hand-made diagram you drag.</p>
+          <p class="verdict">Decades of consistent craft. Direct manipulation, not a loop.</p>
+        </div></li>
+        <li><span class="n">18</span><div class="entry">
+          <div class="title"><a href="https://learngitbranching.js.org/">Learn Git Branching</a><span class="chips"><span class="chip">step</span><span class="chip">Git</span><span class="chip">free</span></span></div>
+          <p>Type git commands and watch the commit graph animate into its new shape, across a progression of levels.</p>
+          <p class="verdict">A classic. Command-driven, and Git is a tool rather than a language.</p>
+        </div></li>
+        <li><span class="n">19</span><div class="entry">
+          <div class="title"><a href="https://pythontutor.com/visualize.html">Python Tutor</a><span class="chips"><span class="chip">step</span><span class="chip">Python, Java, C, C++, JS</span><span class="chip">free</span></span></div>
+          <p>Paste any program and step through frames, heap objects, and pointers. Twenty million learners since 2010.</p>
+          <p class="verdict">Multi-language and mechanism-first, but a general tool with no loop and no isolated concept.</p>
+        </div></li>
+        <li><span class="n">20</span><div class="entry">
+          <div class="title"><a href="https://brilliant.org">Brilliant</a><span class="chips"><span class="chip">step</span><span class="chip">agnostic</span><span class="chip">paid</span></span></div>
+          <p>Structured computer science courses delivered as click-to-answer diagrams that animate to reveal the outcome. Roughly a hundred and fifty dollars a year.</p>
+          <p class="verdict">The only serious commercial entry. Quiz-gated, not something you can stare at.</p>
+        </div></li>
+      </ol>
+    </div>
+  </section>
+
+  <section>
+    <h2>What nobody does</h2>
+    <div class="gap">
+      <p>The parts of the idea exist separately and nobody has combined them. The ambient loop you can stare at exists, at samwho.dev and in the sorting race, but those scenes are language-agnostic. The concept under a language's rules exists, in the Go concurrency demos, the event-loop visualizers, and Aquascope, but those play once or step, and each shows one language.</p>
+      <p>No live site found does a scene that keeps running while you toggle which language's rules it obeys, with the scene morphing rather than resetting, and with a variant that cannot do the thing shown stalling in view. The Kotlin coroutines playground is the only project even aiming at multiple languages for one set of scenes, and it is early.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Checked and set aside</h2>
+    <ul>
+      <li>Ardan Labs' Go scheduler series is the best static explanation of the scheduler and has no motion at all.</li>
+      <li>Bartosz Ciechanowski's essays are the craft ceiling for this genre but are about physics and machines, and his few programming posts use static diagrams.</li>
+      <li>Nicky Case's LOOPY runs on its own and is delightful, but models feedback systems, not programming.</li>
+      <li>Distill.pub has excellent interactive essays about machine learning math, off topic here.</li>
+      <li>Artur Basak's event loop page and the simulations4all process scheduler are tidy and animated but add nothing the entries above do not.</li>
+      <li>Codecademy, Exercism, Educative, and JetBrains Academy were searched specifically and showed no animated concept visualizations.</li>
+      <li>concurrency.rocks and VisualizeJS could not be verified beyond their metadata. algorithm-visualizer.org is currently down.</li>
+      <li>No web visualizer was found for Rust async, Java virtual threads, or the Erlang scheduler.</li>
+    </ul>
+  </section>
+
+  <footer>Verified by fetching each page on 2026-09-03. Rankings are a judgement against the concept note's bar, not a general quality score.</footer>
+</main>

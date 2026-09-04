@@ -1,0 +1,12 @@
+---
+// Mounts a scene by slug. The manifest is inlined as data so the page and the validators read the same source.
+import '../../scenes/_shared/scene.css';
+const manifests = import.meta.glob('../../scenes/*/manifest.json', { eager: true, import: 'default' });
+const { scene } = Astro.props;
+const manifest = manifests[`../../scenes/${scene}/manifest.json`];
+if (!manifest) throw new Error(`No manifest found for scene "${scene}"`);
+---
+<loop-scene class="not-content" data-scene={scene} data-manifest={JSON.stringify(manifest)}></loop-scene>
+<script>
+  import '../../scenes/index.js';
+</script>

@@ -1,0 +1,21 @@
+{
+  "name": "learning-loops",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "test": "node --test 'tools/*.test.mjs'",
+    "validate:dom": "node tools/validate-dom.mjs",
+    "validate": "npm test && npm run build && npm run validate:dom",
+    "shot": "node tools/screenshot.mjs"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.42.0",
+    "astro": "^7.2.10",
+    "sharp": "^0.35.3"
+  }
+}

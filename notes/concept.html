@@ -1,0 +1,246 @@
+<title>Language Universe</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --ground: #F3F5F7;
+    --ink: #172033;
+    --muted: #64708A;
+    --rule: #D3D9E2;
+    --track: #B8C1CF;
+    --lit: #0F7B6C;
+    --lit-soft: #D6EDE8;
+    --stall: #B4472F;
+    --stall-soft: #F3DDD6;
+    --marble: #2B4C8C;
+    --code-bg: #E8ECF1;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #12171F;
+      --ink: #E6EAF0;
+      --muted: #93A0B4;
+      --rule: #2C3543;
+      --track: #3A4557;
+      --lit: #3FBFA8;
+      --lit-soft: #16332F;
+      --stall: #E07A5F;
+      --stall-soft: #3A241D;
+      --marble: #7FA3E8;
+      --code-bg: #1C2330;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #12171F;
+    --ink: #E6EAF0;
+    --muted: #93A0B4;
+    --rule: #2C3543;
+    --track: #3A4557;
+    --lit: #3FBFA8;
+    --lit-soft: #16332F;
+    --stall: #E07A5F;
+    --stall-soft: #3A241D;
+    --marble: #7FA3E8;
+    --code-bg: #1C2330;
+  }
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
+    font-size: 17px;
+    line-height: 1.6;
+  }
+  main {
+    max-width: 68ch;
+    margin: 0 auto;
+    padding: 56px 24px 96px;
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+  }
+  h1, h2 {
+    font-family: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+    text-wrap: balance;
+    line-height: 1.1;
+    margin: 0;
+  }
+  h1 { font-size: 44px; font-weight: 700; letter-spacing: -0.01em; }
+  h2 { font-size: 24px; font-weight: 600; }
+  p { margin: 0; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", Menlo, Consolas, monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  header { display: flex; flex-direction: column; gap: 14px; }
+  header p.lede { font-size: 20px; line-height: 1.45; max-width: 56ch; }
+  section { display: flex; flex-direction: column; gap: 16px; }
+  section > h2 { padding-top: 20px; border-top: 1px solid var(--rule); }
+  .word {
+    font-family: "IBM Plex Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    background: var(--code-bg);
+    padding: 1px 6px;
+    border-radius: 3px;
+  }
+  ul, ol { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; }
+  li::marker { color: var(--muted); }
+  figure { margin: 0; display: flex; flex-direction: column; gap: 10px; }
+  figure svg { width: 100%; height: auto; display: block; }
+  figcaption { font-size: 14px; color: var(--muted); font-style: italic; }
+  .legend {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 8px 20px;
+    font-size: 15px;
+  }
+  .legend span:first-child {
+    font-family: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+    font-weight: 600;
+  }
+  .tablewrap { overflow-x: auto; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 560px;
+    font-size: 15px;
+    font-variant-numeric: tabular-nums;
+  }
+  th, td { text-align: left; padding: 9px 12px 9px 0; vertical-align: top; border-bottom: 1px solid var(--rule); }
+  th {
+    font-family: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  td:first-child { font-weight: 600; }
+  td.no { color: var(--stall); }
+  td.part { color: var(--stall); font-style: italic; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 560px) { .pair { grid-template-columns: 1fr; } }
+  .pair > div { display: flex; flex-direction: column; gap: 8px; }
+  .pair h3 {
+    font-family: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px; font-weight: 600; margin: 0;
+  }
+  .lit-note { border-left: 3px solid var(--lit); padding-left: 14px; }
+  .stall-note { border-left: 3px solid var(--stall); padding-left: 14px; }
+  footer { font-size: 14px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 16px; }
+</style>
+
+<main>
+  <header>
+    <p class="eyebrow">Concept note &middot; 2026-09-03</p>
+    <h1>Language Universe</h1>
+    <p class="lede">Looping, art-like scenes that each isolate one language capability and show it as a marble run. Meant to be stared at until the mechanism and its vocabulary fuse.</p>
+  </header>
+
+  <section>
+    <h2>Why this exists</h2>
+    <p>Most language-learning content holds the words steady and asks you to imagine the mechanism. This does the opposite. The mechanism stays on screen and cycles on its own, and the words are the only thing that changes when you toggle from Python to the language you are learning. You can read about a language elsewhere. This is for a different kind of learning: watching one thing loop until it is burned in.</p>
+  </section>
+
+  <section>
+    <h2>The scene is a marble run</h2>
+    <figure>
+      <svg viewBox="0 0 640 220" role="img" aria-label="Track grammar: marbles drop at the top, roll through sections, hit a switch, one branch has a gate where a marble stalls, and a lift returns marbles to the top.">
+        <!-- lift -->
+        <rect x="24" y="30" width="18" height="150" rx="4" fill="none" stroke="var(--track)" stroke-width="2"/>
+        <path d="M33 175 L33 40" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="3 5" fill="none"/>
+        <path d="M27 48 L33 38 L39 48" fill="none" stroke="var(--muted)" stroke-width="1.5"/>
+        <text x="33" y="200" font-size="11" text-anchor="middle" fill="var(--muted)" font-family="IBM Plex Mono, monospace">lift</text>
+        <!-- top track -->
+        <path d="M42 40 H200" stroke="var(--track)" stroke-width="3" fill="none"/>
+        <text x="120" y="30" font-size="11" text-anchor="middle" fill="var(--muted)" font-family="IBM Plex Mono, monospace">created</text>
+        <!-- section running -->
+        <path d="M200 40 C240 40 250 70 290 70" stroke="var(--track)" stroke-width="3" fill="none"/>
+        <text x="245" y="98" font-size="11" text-anchor="middle" fill="var(--muted)" font-family="IBM Plex Mono, monospace">running</text>
+        <!-- switch -->
+        <circle cx="290" cy="70" r="6" fill="var(--ground)" stroke="var(--ink)" stroke-width="2"/>
+        <text x="290" y="56" font-size="11" text-anchor="middle" fill="var(--ink)" font-family="IBM Plex Mono, monospace">switch</text>
+        <!-- lit branch -->
+        <path d="M296 70 C340 70 350 110 400 110 H540" stroke="var(--lit)" stroke-width="3" fill="none"/>
+        <text x="470" y="100" font-size="11" text-anchor="middle" fill="var(--lit)" font-family="IBM Plex Mono, monospace">await</text>
+        <!-- dim branch with gate -->
+        <path d="M296 70 C340 70 350 160 400 160 H460" stroke="var(--track)" stroke-width="3" fill="none" stroke-dasharray="6 4"/>
+        <rect x="460" y="146" width="6" height="28" fill="var(--stall)"/>
+        <text x="463" y="192" font-size="11" text-anchor="middle" fill="var(--stall)" font-family="IBM Plex Mono, monospace">gate</text>
+        <path d="M466 160 H540" stroke="var(--track)" stroke-width="3" fill="none" stroke-dasharray="6 4"/>
+        <!-- return to lift -->
+        <path d="M540 110 C580 110 590 140 590 160 V190 H33" stroke="var(--track)" stroke-width="2" fill="none"/>
+        <path d="M540 160 C570 160 580 170 590 175" stroke="var(--track)" stroke-width="2" fill="none" stroke-dasharray="6 4"/>
+        <text x="310" y="210" font-size="11" text-anchor="middle" fill="var(--muted)" font-family="IBM Plex Mono, monospace">finished, back to the lift</text>
+        <!-- marbles -->
+        <circle cx="130" cy="40" r="7" fill="var(--marble)"/>
+        <circle cx="350" cy="88" r="7" fill="var(--marble)"/>
+        <circle cx="452" cy="160" r="7" fill="var(--marble)" opacity="0.6"/>
+      </svg>
+      <figcaption>Track grammar. The lit branch is the variant currently selected. The dashed branch is another variant, still visible, with a marble stalled at a gate it cannot pass.</figcaption>
+    </figure>
+    <div class="legend">
+      <span>Marble</span><span>a unit of work</span>
+      <span>Track section</span><span>a state that unit can be in</span>
+      <span>Switch</span><span>a point where language models differ</span>
+      <span>Gate</span><span>a capability this variant lacks</span>
+      <span>Lift</span><span>the scheduler, returning marbles to the top</span>
+      <span>Word on the track</span><span>the vocabulary that fires at that moment</span>
+    </div>
+    <p>The loop is not a trick added on. Marbles drop, roll, finish, and the lift carries them back. That is what the machine does, so it can run forever.</p>
+  </section>
+
+  <section>
+    <h2>Decisions settled so far</h2>
+    <ul>
+      <li>One scene per capability. No side-by-side code panes. The language is a skin on the scene.</li>
+      <li>Toggling morphs the scene on the same timeline and never resets it. Marbles already rolling keep rolling and take the new path at the next switch.</li>
+      <li>The cue is vocabulary fused to motion. When a marble gives up control, the word appears: <span class="word">await</span>, <span class="word">park</span>, <span class="word">block</span>. Syntax is at most an optional hover whisper.</li>
+      <li>What you toggle is a variant, meaning a language plus an approach. Python has several entries. Morphing from Python threads to Python asyncio teaches something before leaving Python.</li>
+      <li>First set of variants: Python threads, Python asyncio, Go goroutines. Python is always the anchor you return to.</li>
+      <li>The participants in a scene are the variants that can do that thing. Absence teaches.</li>
+      <li class="stall-note">Partial capability is rendered, not hidden. A Python thread reaching parallel work hits the Global Interpreter Lock and stalls at a gate, in view of the marbles that pass.</li>
+      <li class="lit-note">All paths stay visible. The selected variant is lit, the others dim. Crowding is accepted as a rendering problem for later.</li>
+      <li>Loop rhythm leans toward a fixed skeleton with small timing jitter, which is also truer to concurrency. Not final.</li>
+      <li>Tooling is deliberately undecided. Marimo was considered and set aside because the scenes want rich motion and interaction. Choose tooling only after the first scene is designed on paper.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>First topic: concurrency</h2>
+    <p>Concurrency is a topic, not a concept. Each row below is a candidate scene. Rows where all three participants do the same thing differently, like handing off a value, make good early scenes. Rows with a gap are where the roster shrinks and a gate appears.</p>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>Capability</th><th>Python threads</th><th>Python asyncio</th><th>Go</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Gives up control at a wait point</td><td>blocks, OS switches</td><td>await</td><td>parks on a channel or call</td></tr>
+          <tr><td>Gets interrupted mid-run</td><td>yes</td><td class="no">no</td><td>yes</td></tr>
+          <tr><td>Runs truly in parallel</td><td class="part">only during IO, gate otherwise</td><td class="no">no</td><td>yes</td></tr>
+          <tr><td>Hands a value to another unit</td><td>Queue</td><td>asyncio.Queue</td><td>channel</td></tr>
+          <tr><td>Shares state behind a lock</td><td>Lock</td><td>rarely needed</td><td>Mutex</td></tr>
+          <tr><td>Waits on many at once</td><td>join each</td><td>gather</td><td>WaitGroup or select</td></tr>
+          <tr><td>Gets cancelled from outside</td><td class="no">no clean way</td><td>Task.cancel</td><td>context</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>What varies between models is a short list, and each item can be a visual dimension rather than a sentence: how many things truly run at once becomes lanes; who owns scheduling becomes whether a visible runtime or the OS moves marbles; what causes a wait becomes where a marble stops; how units talk becomes a hand-to-hand pass or a shared box with a lock; and the cost of a unit becomes its weight, so a thread reads heavy and a goroutine reads light.</p>
+  </section>
+
+  <section>
+    <h2>Next step</h2>
+    <div class="pair">
+      <div>
+        <h3>Recommended</h3>
+        <p>Design the base scene on paper first: a marble giving up control at a wait point. Every other scene is that track with something added, so the grammar settled here gets reused everywhere.</p>
+      </div>
+      <div>
+        <h3>Alternative</h3>
+        <p>Start from the stall scene, since it is the one worth staring at. It works, but it means designing the base track implicitly along the way.</p>
+      </div>
+    </div>
+    <p>Things to decide for the base scene: the states along the track, where the switch sits for each of the three variants, the word that appears at the wait point for each, and what the lift does differently under cooperative versus preemptive scheduling.</p>
+  </section>
+
+  <footer>Planning only. Nothing has been built, and no tooling has been chosen.</footer>
+</main>
