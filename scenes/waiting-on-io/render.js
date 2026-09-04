@@ -128,7 +128,7 @@ const TEMPLATE = (m) => `
     </svg>
     <div class="ll-trace-wrap">
       <svg class="ll-trace" viewBox="0 0 720 74" role="img" aria-label="Trace of the last ticks, one row per marble"></svg>
-      <div class="ll-tkey"><span>trace, one column per tick</span><span><i class="k-run"></i>running</span><span><i class="k-wait"></i>waiting for a reply</span><span><i class="k-ready"></i>ready, queued on the ramp</span><span>&#9662; runtime toggled</span></div>
+      <div class="ll-tkey"><span>trace, one column per tick</span><span><i class="k-run"></i>running</span><span><i class="k-wait"></i>waiting for a reply</span><span><i class="k-ready"></i>ready, queued on the ramp</span><span><i class="k-end"></i>done</span><span>&#9662; runtime toggled</span></div>
     </div>
   </div>
   <p class="ll-caption"></p>
@@ -205,11 +205,13 @@ export function mount(host, M) {
       const x = X0 + i * CW;
       if (h.cycleStart) trace.appendChild(el('line', { x1: x - 2.5, y1: 4, x2: x - 2.5, y2: 70, class: 'cycle' }));
       if (h.toggled) trace.appendChild(el('path', { d: `M${x + 7} 1 l8 0 l-4 5 z`, class: 'vmark' }));
-      // the newest column fills over the tick, like the beat bar; the one before it just completed
-      const newest = i === history.length - 1, justDone = i === history.length - 2;
+      // the newest column fills over the tick, like the beat bar; nothing in the strip flashes
+      const newest = i === history.length - 1;
       h.s.forEach((loc, r) => {
         const cls = loc === 'slot' ? 'cell-run' : loc === 'pocket' ? 'cell-wait' : loc === 'ramp' ? 'cell-ready' : null;
-        if (cls) trace.appendChild(el('rect', { x, y: ROWS[r], width: newest ? 0.5 : 22, height: 12, rx: 2, class: cls + (newest ? ' cell-new' : justDone ? ' cell-done' : '') }));
+        if (cls) trace.appendChild(el('rect', { x, y: ROWS[r], width: newest ? 0.5 : 22, height: 12, rx: 2, class: cls + (newest ? ' cell-new' : '') }));
+        // done: a short end bar where the row goes blank
+        else if (loc === 'tray' && (i === 0 || history[i - 1].s[r] !== 'tray')) trace.appendChild(el('rect', { x, y: ROWS[r], width: 2.5, height: 12, class: 'cell-end' }));
       });
     });
   }
