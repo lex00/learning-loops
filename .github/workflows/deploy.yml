@@ -26,6 +26,8 @@ jobs:
       - run: npm ci
       - name: Level 1, state machines against beat tables
         run: npm test
+      - name: Prose lint with the sentences de-stink rules
+        run: npm run lint
       - run: npm run build
       - name: Level 2, rendered trace strips against state machines
         run: npm run validate:dom

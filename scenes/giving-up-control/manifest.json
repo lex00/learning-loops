@@ -5,87 +5,248 @@
   "order": 1,
   "lede": "A marble reaches a point where it needs something from outside, a network response say, and cannot go on until it arrives. It leaves the running platform and another marble runs. Toggle the runtime. The scene keeps going.",
   "misconception": "My three tasks run at the same time. In asyncio and in Python threads, exactly one marble is ever on the platform. Progress comes from waits overlapping, never from runs overlapping. Go and tokio widen the platform, and even there marbles queue when the slots are full.",
-  "look": "The beat to stare at: a reply lands, the marble is ready on the ramp, the gate turns red, and the lift holds. Two things separate the four runtimes here: how many slots the platform has, and whether the lift has a dial.",
+  "look": "Stare at the beat where a reply lands while every slot is taken. The gate turns red and the lift holds. Two things separate the four runtimes here, how many slots the platform has and whether the lift has a dial.",
   "marbles": 3,
-  "names": ["one-dot", "two-dot", "three-dot"],
-  "skeleton": [
-    { "kind": "run", "ticks": 1 },
-    { "kind": "wait", "ticks": 2 },
-    { "kind": "run", "ticks": 2 }
+  "names": [
+    "one-dot",
+    "two-dot",
+    "three-dot"
   ],
-  "timing": { "periods": { "slow": 2000, "normal": 1400, "fast": 900 }, "default": "normal", "moveFraction": 0.3, "wordFraction": 0.85 },
+  "skeleton": [
+    {
+      "kind": "run",
+      "ticks": 1
+    },
+    {
+      "kind": "wait",
+      "ticks": 2
+    },
+    {
+      "kind": "run",
+      "ticks": 2
+    }
+  ],
+  "timing": {
+    "periods": {
+      "slow": 2000,
+      "normal": 1400,
+      "fast": 900
+    },
+    "default": "normal",
+    "moveFraction": 0.3,
+    "wordFraction": 0.85
+  },
   "anchor": "asyncio",
-  "variantOrder": ["threads", "asyncio", "go", "tokio"],
+  "variantOrder": [
+    "threads",
+    "asyncio",
+    "go",
+    "tokio"
+  ],
   "variants": {
     "threads": {
-      "label": "Python threads", "slots": 1, "weight": 1.4, "preempt": true,
-      "slotName": "the GIL", "liftName": "the OS scheduler", "lane2": "no second lane",
-      "note": "One slot. The lift has a dial: the OS can take a thread off the platform on a timer.",
-      "words": { "trap": "blocks", "ready": "runnable", "done": "exits" },
+      "label": "Python threads",
+      "slots": 1,
+      "weight": 1.4,
+      "preempt": true,
+      "slotName": "the GIL",
+      "liftName": "the OS scheduler",
+      "lane2": "no second lane",
+      "note": "One slot, and a dial on the lift, so the OS can take a thread off the platform on a timer.",
+      "words": {
+        "trap": "blocks",
+        "ready": "runnable",
+        "done": "exits"
+      },
       "gloss": {
-        "marble": ["a thread", "an operating-system thread running Python code. Heavy: the OS gives each one its own stack."],
-        "slot": ["the GIL", "the Global Interpreter Lock. Only the thread holding it runs Python code, so there is one slot however many threads exist."],
-        "lift": ["the OS scheduler", "the operating system decides which thread runs. Python only decides who holds the GIL."],
-        "trap": ["blocks, releases the GIL", "a blocking call such as a socket read lets go of the GIL while it waits, so another thread can take it."],
-        "ready": ["runnable", "the OS marks the thread ready. It still has to get the GIL back before it runs Python."],
-        "run": ["holds the GIL", "this thread is the one running Python right now."],
-        "done": ["exits", "the thread function returned."]
+        "marble": [
+          "a thread",
+          "an operating-system thread running Python code. It is heavy because the OS gives each one its own stack."
+        ],
+        "slot": [
+          "the GIL",
+          "the Global Interpreter Lock. Only the thread holding it runs Python code, so there is one slot however many threads exist."
+        ],
+        "lift": [
+          "the OS scheduler",
+          "the operating system decides which thread runs. Python only decides who holds the GIL."
+        ],
+        "trap": [
+          "blocks, releases the GIL",
+          "a blocking call such as a socket read lets go of the GIL while it waits, so another thread can take it."
+        ],
+        "ready": [
+          "runnable",
+          "the OS marks the thread ready. It still has to get the GIL back before it runs Python."
+        ],
+        "run": [
+          "holds the GIL",
+          "this thread is the one running Python right now."
+        ],
+        "done": [
+          "exits",
+          "the thread function returned."
+        ]
       }
     },
     "asyncio": {
-      "label": "Python asyncio", "slots": 1, "weight": 1, "preempt": false,
-      "slotName": "the loop", "liftName": "the event loop", "lane2": "no second lane",
-      "note": "One slot. No dial: the loop cannot interrupt a task. Same schedule as threads in this scene.",
-      "words": { "trap": "await", "ready": "ready", "done": "done" },
+      "label": "Python asyncio",
+      "slots": 1,
+      "weight": 1,
+      "preempt": false,
+      "slotName": "the loop",
+      "liftName": "the event loop",
+      "lane2": "no second lane",
+      "note": "One slot and no dial, so the loop cannot interrupt a task. It runs the same schedule as threads in this scene.",
+      "words": {
+        "trap": "await",
+        "ready": "ready",
+        "done": "done"
+      },
       "gloss": {
-        "marble": ["a task", "a coroutine wrapped so the event loop can schedule it. Light: it is just a Python object."],
-        "slot": ["the loop", "one event loop on one thread runs one task at a time."],
-        "lift": ["the event loop", "picks the next ready task, but only when the running task hands control back."],
-        "trap": ["await", "the task suspends itself here and gives control to the loop."],
-        "ready": ["ready", "the awaited future resolved. The task is queued for the loop."],
-        "run": ["running", "the loop is executing this task's next step."],
-        "done": ["done", "the coroutine returned."]
+        "marble": [
+          "a task",
+          "a coroutine wrapped so the event loop can schedule it. It is light because it is just a Python object."
+        ],
+        "slot": [
+          "the loop",
+          "one event loop on one thread runs one task at a time."
+        ],
+        "lift": [
+          "the event loop",
+          "picks the next ready task, but only when the running task hands control back."
+        ],
+        "trap": [
+          "await",
+          "the task suspends itself here and gives control to the loop."
+        ],
+        "ready": [
+          "ready",
+          "the awaited future resolved. The task is queued for the loop."
+        ],
+        "run": [
+          "running",
+          "the loop is executing this task's next step."
+        ],
+        "done": [
+          "done",
+          "the coroutine returned."
+        ]
       }
     },
     "go": {
-      "label": "Go", "slots": 2, "weight": 1, "preempt": true,
-      "slotName": "a P", "liftName": "the runtime scheduler", "lane2": "a second P",
-      "note": "Two slots. The lift has a dial: the runtime can take a goroutine off a P on a timer.",
-      "words": { "trap": "parks", "ready": "runnable", "done": "returns" },
+      "label": "Go",
+      "slots": 2,
+      "weight": 1,
+      "preempt": true,
+      "slotName": "a P",
+      "liftName": "the runtime scheduler",
+      "lane2": "a second P",
+      "note": "Two slots, and a dial on the lift, so the runtime can take a goroutine off a P on a timer.",
+      "words": {
+        "trap": "parks",
+        "ready": "runnable",
+        "done": "returns"
+      },
       "gloss": {
-        "marble": ["a goroutine", "a function the Go runtime schedules. Light: it starts with a tiny stack."],
-        "slot": ["a P", "a processor: the scheduling context a goroutine must hold to run. There are GOMAXPROCS of them, one per core by default. Two are drawn here."],
-        "lift": ["the runtime scheduler", "Go's own scheduler moves goroutines onto Ps, independently of the operating system."],
-        "trap": ["parks", "the goroutine is parked while the netpoller waits for the reply. Its P is free for another goroutine."],
-        "ready": ["runnable", "the reply arrived and the goroutine is queued for a P."],
-        "run": ["running on a P", "this goroutine holds a P and is executing."],
-        "done": ["returns", "the goroutine's function returned."]
+        "marble": [
+          "a goroutine",
+          "a function the Go runtime schedules. It is light because it starts with a tiny stack."
+        ],
+        "slot": [
+          "a P",
+          "a processor, the scheduling context a goroutine must hold to run. There are GOMAXPROCS of them, one per core by default, and two are drawn here."
+        ],
+        "lift": [
+          "the runtime scheduler",
+          "Go's own scheduler moves goroutines onto Ps, independently of the operating system."
+        ],
+        "trap": [
+          "parks",
+          "the goroutine is parked while the netpoller waits for the reply. Its P is free for another goroutine."
+        ],
+        "ready": [
+          "runnable",
+          "the reply arrived and the goroutine is queued for a P."
+        ],
+        "run": [
+          "running on a P",
+          "this goroutine holds a P and is executing."
+        ],
+        "done": [
+          "returns",
+          "the goroutine's function returned."
+        ]
       }
     },
     "tokio": {
-      "label": "Rust tokio", "slots": 2, "weight": 1, "preempt": false,
-      "slotName": "a worker thread", "liftName": "the tokio runtime", "lane2": "a second worker",
-      "note": "Two slots. No dial: tokio cannot interrupt a task. Same schedule as Go in this scene. The dial is the difference.",
-      "words": { "trap": "pending", "ready": "woken", "done": "completes" },
+      "label": "Rust tokio",
+      "slots": 2,
+      "weight": 1,
+      "preempt": false,
+      "slotName": "a worker thread",
+      "liftName": "the tokio runtime",
+      "lane2": "a second worker",
+      "note": "Two slots and no dial, so tokio cannot interrupt a task. It runs the same schedule as Go in this scene, and the dial is the whole difference.",
+      "words": {
+        "trap": "pending",
+        "ready": "woken",
+        "done": "completes"
+      },
       "gloss": {
-        "marble": ["a task", "a future spawned onto the runtime: a state machine on the heap, driven by being polled. Light."],
-        "slot": ["a worker thread", "tokio's multi-thread runtime starts one per core by default and steals tasks between them. Two are drawn here."],
-        "lift": ["the tokio runtime", "its scheduler polls tasks on worker threads. A task leaves a worker only when its future returns Pending; tokio never interrupts it."],
-        "trap": ["pending", "the future returns Poll::Pending. The task yields its worker and leaves a waker behind so it can be told when to try again."],
-        "ready": ["woken", "the reply arrived and the waker fired. The task is queued for a worker to poll it again."],
-        "run": ["polled", "a worker thread is polling this task's future."],
-        "done": ["completes", "the future returned Poll::Ready with its value."]
+        "marble": [
+          "a task",
+          "a future spawned onto the runtime, a state machine on the heap that runs by being polled. It is light."
+        ],
+        "slot": [
+          "a worker thread",
+          "tokio's multi-thread runtime starts one per core by default and steals tasks between them. Two are drawn here."
+        ],
+        "lift": [
+          "the tokio runtime",
+          "its scheduler polls tasks on worker threads. A task leaves a worker only when its future returns Pending; tokio never interrupts it."
+        ],
+        "trap": [
+          "pending",
+          "the future returns Poll::Pending, so the task yields its worker and leaves a waker behind to be told when to try again."
+        ],
+        "ready": [
+          "woken",
+          "the reply arrived and the waker fired. The task is queued for a worker to poll it again."
+        ],
+        "run": [
+          "polled",
+          "a worker thread is polling this task's future."
+        ],
+        "done": [
+          "completes",
+          "the future returned Poll::Ready with its value."
+        ]
       }
     }
   },
   "expected": {
     "1": [
-      "slot ramp ramp", "pocket slot ramp", "pocket pocket slot", "slot pocket pocket", "slot ramp pocket",
-      "tray slot ramp", "tray slot ramp", "tray tray slot", "tray tray slot", "ramp ramp ramp"
+      "slot ramp ramp",
+      "pocket slot ramp",
+      "pocket pocket slot",
+      "slot pocket pocket",
+      "slot ramp pocket",
+      "tray slot ramp",
+      "tray slot ramp",
+      "tray tray slot",
+      "tray tray slot",
+      "ramp ramp ramp"
     ],
     "2": [
-      "slot slot ramp", "pocket pocket slot", "pocket pocket pocket", "slot slot pocket", "slot slot ramp",
-      "tray tray slot", "tray tray slot", "ramp ramp ramp"
+      "slot slot ramp",
+      "pocket pocket slot",
+      "pocket pocket pocket",
+      "slot slot pocket",
+      "slot slot ramp",
+      "tray tray slot",
+      "tray tray slot",
+      "ramp ramp ramp"
     ]
   }
 }

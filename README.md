@@ -6,25 +6,30 @@ The site is Astro with the Starlight docs theme. Scenes are framework-free web c
 
 ## Layout
 
-    scenes/<slug>/manifest.json   what the scene is: skeleton, variants, vocabulary, glossary, expected beat tables
-    scenes/<slug>/sim.js          the state machine, no drawing
-    scenes/<slug>/render.js       the renderer, registers itself for <loop-scene data-scene="slug">
-    scenes/_shared/               the element, the design tokens, shared CSS
-    src/content/docs/<topic>/     one MDX page per scene, prose around <LoopScene scene="slug" />
-    src/components/               LoopScene and VariantTable, both read the manifest
-    tools/                        validators and the screenshot helper
-    notes/                        the planning documents this grew from
+```
+scenes/<slug>/manifest.json   what the scene is: skeleton, variants, vocabulary, glossary, expected beat tables
+scenes/<slug>/sim.js          the state machine, no drawing
+scenes/<slug>/render.js       the renderer, registers itself for <loop-scene data-scene="slug">
+scenes/_shared/               the element, the design tokens, shared CSS
+src/content/docs/<topic>/     one MDX page per scene, prose around <LoopScene scene="slug" />
+src/components/               LoopScene and VariantTable, both read the manifest
+tools/                        validators and the screenshot helper
+notes/                        the planning documents this grew from
+```
 
 ## Commands
 
-With [just](https://github.com/casey/just): `just` lists the recipes. The npm scripts underneath:
+With [just](https://github.com/casey/just) installed, `just` lists the recipes. These are the npm scripts underneath.
 
-    npm run dev            local site
-    npm test               level 1: every scene's state machine against its manifest's beat tables
-    npm run build          static site into dist/
-    npm run validate:dom   level 2: render each scene and runtime in headless Chrome and diff the trace strip
-    npm run validate       all of the above
-    npm run shot -- giving-up-control go 5    screenshot a scene at a tick
+```
+npm run dev            local site
+npm test               level 1: every scene's state machine against its manifest's beat tables
+npm run build          static site into dist/
+npm run validate:dom   level 2: render each scene and runtime in headless Chrome and diff the trace strip
+npm run validate       all of the above
+npm run shot -- giving-up-control go 5    screenshot a scene at a tick
+npm run lint           prose lint of pages, manifests, and this file with the sentences de-stink rules
+```
 
 Level 2 and the screenshot helper use the installed Google Chrome on macOS; set CHROME to point elsewhere.
 

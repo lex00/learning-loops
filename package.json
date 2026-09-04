@@ -10,12 +10,16 @@
     "astro": "astro",
     "test": "node --test 'tools/*.test.mjs'",
     "validate:dom": "node tools/validate-dom.mjs",
-    "validate": "npm test && npm run build && npm run validate:dom",
-    "shot": "node tools/screenshot.mjs"
+    "validate": "npm test && npm run lint && npm run build && npm run validate:dom",
+    "shot": "node tools/screenshot.mjs",
+    "lint": "node tools/lint-prose.mjs"
   },
   "dependencies": {
     "@astrojs/starlight": "^0.42.0",
     "astro": "^7.2.10",
     "sharp": "^0.35.3"
+  },
+  "devDependencies": {
+    "sentences": "^0.1.1"
   }
 }

@@ -13,6 +13,10 @@ dev:
 test:
     npm test
 
+# prose lint with the sentences de-stink rules (just lint --min=low for everything)
+lint *args:
+    node tools/lint-prose.mjs {{args}}
+
 # static site into dist/
 build:
     npm run build
