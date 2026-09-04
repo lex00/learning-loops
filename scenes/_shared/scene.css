@@ -18,17 +18,20 @@ loop-scene { display: flex; flex-direction: column; gap: 18px; color: var(--ll-i
 loop-scene p { margin: 0; }
 loop-scene .ll-eyebrow { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ll-muted); }
 loop-scene .ll-controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
-loop-scene .ll-seg { display: inline-flex; border: 1px solid var(--ll-rule); border-radius: 6px; overflow: hidden; }
-loop-scene .ll-seg button { font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; font-size: 14px; padding: 8px 14px; border: 0; background: var(--ll-btn); color: var(--ll-muted); cursor: pointer; }
-loop-scene .ll-seg button + button { border-left: 1px solid var(--ll-rule); }
-loop-scene .ll-seg button[aria-pressed="true"] { background: var(--ll-lit-soft); color: var(--ll-lit); }
-loop-scene .ll-seg button:focus-visible { outline: 2px solid var(--ll-lit); outline-offset: -2px; }
-loop-scene .ll-btn { font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; font-size: 14px; padding: 8px 14px; border: 1px solid var(--ll-rule); border-radius: 6px; background: var(--ll-btn); color: var(--ll-ink); cursor: pointer; }
+loop-scene .ll-transport { display: inline-flex; flex-wrap: nowrap; align-items: stretch; border: 1px solid var(--ll-lit); border-radius: 8px; background: var(--ll-lit-soft); padding: 3px; gap: 3px; }
+loop-scene .ll-transport .ll-speed { padding: 0 8px 0 10px; border-left: 1px solid var(--ll-lit); margin-left: 3px; }
+loop-scene .ll-btn { font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; font-size: 14px; padding: 7px 12px; border: 0; border-radius: 6px; background: var(--ll-btn); color: var(--ll-ink); cursor: pointer; display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+loop-scene .ll-play { background: var(--ll-lit); color: #fff; }
+loop-scene .ll-glyph { font-size: 11px; line-height: 1; }
 loop-scene .ll-btn:focus-visible { outline: 2px solid var(--ll-lit); outline-offset: 1px; }
 loop-scene label.ll-speed { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 12px; color: var(--ll-muted); display: inline-flex; gap: 8px; align-items: center; }
 loop-scene select { font-family: "Bricolage Grotesque", sans-serif; font-size: 14px; padding: 6px 8px; border: 1px solid var(--ll-rule); border-radius: 6px; background: var(--ll-btn); color: var(--ll-ink); }
 loop-scene .ll-tick { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 12px; color: var(--ll-muted); margin-left: auto; font-variant-numeric: tabular-nums; }
 loop-scene .ll-note { font-size: 15px; color: var(--ll-muted); margin-top: -8px; }
+loop-scene label.ll-pick { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 12px; color: var(--ll-muted); display: inline-flex; gap: 8px; align-items: center; }
+loop-scene .ll-variant { font-weight: 600; }
+loop-scene .ts { font-size: 9px; }
+loop-scene .request { fill: none; stroke: var(--ll-marble); stroke-width: 1.5; }
 
 loop-scene .ll-scene { border: 1px solid var(--ll-rule); border-radius: 8px; background: var(--ll-ground); padding: 6px; display: flex; flex-direction: column; gap: 4px; }
 loop-scene svg { width: 100%; height: auto; display: block; }

@@ -27,6 +27,12 @@ function tween(node, points, ms, delay = 0, onDone, reduced = false) {
   };
   state.raf = requestAnimationFrame(frame); active.set(node, state);
 }
+function tweenAngle(node, cx, cy, from, to, ms, delay = 0, reduced = false) {
+  if (reduced || ms === 0) { node.setAttribute('transform', `rotate(${to} ${cx} ${cy})`); return; }
+  const t0 = performance.now() + delay;
+  const frame = now => { const u = Math.min(1, Math.max(0, (now - t0) / ms)); node.setAttribute('transform', `rotate(${(from + (to - from) * easeInOut(u)).toFixed(2)} ${cx} ${cy})`); if (u < 1) requestAnimationFrame(frame); };
+  requestAnimationFrame(frame);
+}
 function tweenScale(node, from, to, ms, reduced = false) {
   if (reduced || ms === 0) { node.setAttribute('transform', `scale(${to})`); return; }
   const t0 = performance.now();
@@ -47,17 +53,19 @@ const P = {
 // where a running marble sits on its lane after k ticks of its run segment: the first run ends at the trapdoor, the second crosses it
 const RUN_X = { 0: [190], 2: [190, 390] };
 
+const DEVICES = `
+      <g class="ll-devices">
+        <rect x="180" y="146" width="110" height="54" rx="4" class="thin dash"/>
+        <g class="thin"><circle cx="200" cy="166" r="8"/><ellipse cx="200" cy="166" rx="3.5" ry="8"/><path d="M192 166 H208"/></g>
+        <g class="thin"><ellipse cx="235" cy="159" rx="8" ry="3"/><path d="M227 159 V173 a8 3 0 0 0 16 0 V159"/><path d="M227 166 a8 3 0 0 0 16 0"/></g>
+        <g class="thin"><circle cx="270" cy="166" r="8"/><path d="M270 166 V160"/><path d="M270 166 L274 168"/></g>
+        <text x="200" y="192" text-anchor="middle" class="t ts">net</text>
+        <text x="235" y="192" text-anchor="middle" class="t ts">disk</text>
+        <text x="270" y="192" text-anchor="middle" class="t ts">timer</text>
+        <path d="M290 160 H308" class="thin dash"/><path d="M302 156 L308 160 L302 164" class="thin"/>
+      </g>`;
+
 const TEMPLATE = (m) => `
-  <div class="ll-controls">
-    <div class="ll-seg" role="group" aria-label="Runtime">
-      ${m.variantOrder.map(k => `<button type="button" data-variant="${k}" aria-pressed="false">${esc(m.variants[k].label)}</button>`).join('')}
-    </div>
-    <button type="button" class="ll-btn ll-play" aria-pressed="true">Pause</button>
-    <button type="button" class="ll-btn ll-step">Step</button>
-    <label class="ll-speed">speed <select class="ll-speedsel">${Object.entries(m.timing.periods).map(([k, v]) => `<option value="${v}"${k === m.timing.default ? ' selected' : ''}>${k}</option>`).join('')}</select></label>
-    <span class="ll-tick">tick 0</span>
-  </div>
-  <p class="ll-note"></p>
   <div class="ll-scene">
     <svg class="ll-svg" viewBox="80 8 520 324" role="img" aria-label="Marble run showing one unit of work giving up control at a wait point">
       <rect x="150" y="70" width="22" height="220" rx="4" class="thin"/>
@@ -68,18 +76,16 @@ const TEMPLATE = (m) => `
       <text x="161" y="308" text-anchor="middle" class="t ll-lift-label"></text>
 
       <g class="lane2">
-        <path d="M172 72 H330" class="rail-lit"/><path d="M352 72 H450" class="rail-lit"/><path d="M330 72 L346 104" class="rail-lit"/>
+        <path d="M172 72 H330" class="rail-lit"/><path d="M352 72 H450" class="rail-lit"/>
+        <path d="M330 72 H352" class="rail-lit flap" data-lane="1" transform="rotate(0 330 72)"/>
         <circle cx="330" cy="72" r="3" fill="var(--ll-ink)"/>
         <text x="178" y="62" class="t ll-lane2-label"></text>
       </g>
-      <path d="M172 90 H330" class="rail-lit"/><path d="M352 90 H450" class="rail-lit"/><path d="M330 90 L346 104" class="rail-lit"/>
+      <path d="M172 90 H330" class="rail-lit"/><path d="M352 90 H450" class="rail-lit"/>
+      <path d="M330 90 H352" class="rail-lit flap" data-lane="0" transform="rotate(0 330 90)"/>
       <circle cx="330" cy="90" r="3" fill="var(--ll-ink)"/>
 
-      <rect x="180" y="146" width="110" height="54" rx="4" class="thin dash"/>
-      <text x="235" y="163" text-anchor="middle" class="t tk">outside world</text>
-      <text x="235" y="177" text-anchor="middle" class="t">network, disk,</text>
-      <text x="235" y="191" text-anchor="middle" class="t">or a timer</text>
-      <path d="M290 160 H308" class="thin dash"/><path d="M302 156 L308 160 L302 164" class="thin"/>
+      ${DEVICES}
 
       <path d="M312 130 v28 a14 14 0 0 0 28 0 v-28" class="rail"/>
       <path d="M356 130 v28 a14 14 0 0 0 28 0 v-28" class="rail"/>
@@ -105,6 +111,16 @@ const TEMPLATE = (m) => `
       <div class="ll-tkey"><span>trace, one column per tick</span><span><i class="k-run"></i>running</span><span><i class="k-wait"></i>waiting for a reply</span><span><i class="k-ready"></i>ready, queued on the ramp</span><span>&#9662; runtime toggled</span></div>
     </div>
   </div>
+  <div class="ll-controls">
+    <label class="ll-pick">runtime <select class="ll-variant" aria-label="Runtime">${m.variantOrder.map(k => `<option value="${k}">${esc(m.variants[k].label)}</option>`).join('')}</select></label>
+    <div class="ll-transport" role="group" aria-label="Playback">
+      <button type="button" class="ll-btn ll-play" aria-pressed="true"><span class="ll-glyph">&#10074;&#10074;</span>Pause</button>
+      <button type="button" class="ll-btn ll-step"><span class="ll-glyph">&#9654;&#10073;</span>Step</button>
+      <label class="ll-speed">speed <select class="ll-speedsel">${Object.entries(m.timing.periods).map(([k, v]) => `<option value="${v}"${k === m.timing.default ? ' selected' : ''}>${k}</option>`).join('')}</select></label>
+    </div>
+    <span class="ll-tick">tick 0</span>
+  </div>
+  <p class="ll-note"></p>
   <p class="ll-caption"></p>
   <div class="ll-legend"></div>
   <p class="ll-look">${esc(m.look)}</p>
@@ -136,6 +152,16 @@ export function mount(host, M) {
   function word(text, [x, y], cls = '', anchor = 'middle') {
     const t = el('text', { x, y, 'text-anchor': anchor, class: `word ${cls}` }); t.textContent = text;
     t.addEventListener('animationend', () => t.remove()); gW.appendChild(t);
+  }
+  function request(p, ms, delay) {
+    const c = el('circle', { r: 4, class: 'request' }); gR.appendChild(c); setPos(c, P.pocket[p]);
+    if (reduced) { c.remove(); return; }
+    tween(c, [P.replyFrom], ms, delay, () => c.remove(), reduced);
+  }
+  function flap(lane, ms) {
+    const f = host.querySelector(`.flap[data-lane="${lane}"]`); const cy = P.laneY[lane] + 8;
+    tweenAngle(f, 330, cy, 0, 55, Math.round(ms * 0.35), 0, reduced);
+    tweenAngle(f, 330, cy, 55, 0, Math.round(ms * 0.3), Math.round(ms * 0.85), reduced);
   }
   function reply(p, ms) {
     const c = el('circle', { r: 5, class: 'reply' }); gR.appendChild(c); setPos(c, P.replyFrom);
@@ -185,7 +211,7 @@ export function mount(host, M) {
 
   function applyVariant(key, fromToggle) {
     V = M.variants[key];
-    for (const b of host.querySelectorAll('[data-variant]')) b.setAttribute('aria-pressed', String(b.dataset.variant === key));
+    $('.ll-variant').value = key;
     $('.ll-lift-label').textContent = V.liftName;
     $('.ll-lane2-label').textContent = V.lane2;
     $('.lane2').classList.toggle('on', V.slots === 2);
@@ -219,7 +245,7 @@ export function mount(host, M) {
     for (const e of ev) {
       const nm = e.m ? NAMES[e.m.dots - 1] : '';
       if (e.type === 'run') { add(e.m, [P.liftBottom, P.liftTop(e.slot), [P.laneStart, P.laneY[e.slot]]]); lifted = true; phrases.push(`Lift raises ${nm}.`); }
-      else if (e.type === 'trap') { add(e.m, [P.trap(e.from), P.drop, P.pocket[e.pocket]]); phrases.push(`${cap(nm)} ${V.words.trap}.`); }
+      else if (e.type === 'trap') { add(e.m, [P.trap(e.from), P.drop, P.pocket[e.pocket]]); flap(e.from, ms); request(e.pocket, Math.round(ms * 0.6), ms); phrases.push(`${cap(nm)} ${V.words.trap} and asks the outside world.`); }
       else if (e.type === 'ready') {
         reply(e.pocket, half);
         add(e.m, [P.pocketExit[e.pocket], P.chute[0], P.chute[1], P.ramp(Math.max(0, sim.ramp.indexOf(e.m)))], half);
@@ -257,9 +283,9 @@ export function mount(host, M) {
   function start() { stop(); host.style.setProperty('--ll-wordms', Math.round(period * M.timing.wordFraction) + 'ms'); if (playing && visible) timer = setInterval(tickOnce, period); }
   function stop() { if (timer) { clearInterval(timer); timer = null; } }
   const playBtn = $('.ll-play');
-  const setPlaying = p => { playing = p; playBtn.textContent = p ? 'Pause' : 'Play'; playBtn.setAttribute('aria-pressed', String(p)); start(); };
+  const setPlaying = p => { playing = p; playBtn.innerHTML = p ? '<span class="ll-glyph">&#10074;&#10074;</span>Pause' : '<span class="ll-glyph">&#9654;</span>Play'; playBtn.setAttribute('aria-pressed', String(p)); start(); };
 
-  host.querySelectorAll('[data-variant]').forEach(b => b.addEventListener('click', () => applyVariant(b.dataset.variant, true)));
+  $('.ll-variant').addEventListener('change', e => applyVariant(e.target.value, true));
   playBtn.addEventListener('click', () => setPlaying(!playing));
   $('.ll-step').addEventListener('click', () => { if (playing) setPlaying(false); tickOnce(); });
   $('.ll-speedsel').addEventListener('change', e => { period = +e.target.value; start(); });
