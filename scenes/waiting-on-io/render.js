@@ -66,9 +66,11 @@ const DEVICES = `
         <path d="M290 160 H308" class="thin dash"/><path d="M302 156 L308 160 L302 164" class="thin"/>
       </g>`;
 
+const slotWord = n => ({ 1: 'one slot', 2: 'two slots', 3: 'three slots' }[n] || `${n} slots`);
+
 const TEMPLATE = (m) => `
   <div class="ll-controls">
-    <label class="ll-pick">runtime <select class="ll-variant" aria-label="Runtime">${m.variantOrder.map(k => `<option value="${k}">${esc(m.variants[k].label)}</option>`).join('')}</select></label>
+    <label class="ll-pick">runtime <select class="ll-variant" aria-label="Runtime">${[...new Set(m.variantOrder.map(k => m.variants[k].slots))].sort().map(n => `<optgroup label="${slotWord(n)}">${m.variantOrder.filter(k => m.variants[k].slots === n).map(k => `<option value="${k}">${esc(m.variants[k].label)}</option>`).join('')}</optgroup>`).join('')}</select></label>
     <div class="ll-transport" role="group" aria-label="Playback">
       <button type="button" class="ll-btn ll-play" aria-pressed="true"><span class="ll-glyph">&#10074;&#10074;</span>Pause</button>
       <button type="button" class="ll-btn ll-step"><span class="ll-glyph">&#9654;&#10073;</span>Step</button>
@@ -126,6 +128,7 @@ const TEMPLATE = (m) => `
     </svg>
     <div class="ll-trace-wrap">
       <svg class="ll-trace" viewBox="0 0 720 74" role="img" aria-label="Trace of the last ticks, one row per marble"></svg>
+      <div class="ll-schedules"></div>
       <div class="ll-tkey"><span>trace, one column per tick</span><span><i class="k-run"></i>running</span><span><i class="k-wait"></i>waiting on I/O</span><span><i class="k-ready"></i>runnable, waiting for a slot</span><span><i class="k-end"></i>done</span><span>&#9662; runtime toggled</span></div>
     </div>
   </div>
@@ -236,8 +239,24 @@ export function mount(host, M) {
     $('.ll-note').textContent = V.note;
     for (let d = 1; d <= M.marbles; d++) tweenScale(els[d].querySelector('.body'), scaleNow, V.weight, fromToggle ? 400 : 0, reduced);
     scaleNow = V.weight;
-    renderLegend();
+    renderLegend(); drawSchedules();
     if (fromToggle) { pendingToggle = true; render(sim.setSlots(V.slots), true); }
+  }
+  // the schedules this scene can produce, from the manifest's beat tables, with the runtimes that share each
+  function drawSchedules() {
+    const box = $('.ll-schedules'); box.innerHTML = '';
+    for (const [slots, rows] of Object.entries(M.expected)) {
+      const names = M.variantOrder.filter(k => M.variants[k].slots === +slots).map(k => M.variants[k].label);
+      const wrap = document.createElement('div'); wrap.className = 'll-sched' + (+slots === V.slots ? ' on' : '');
+      const svg = el('svg', { viewBox: `0 0 ${rows.length * 16 + 2} ${M.marbles * 10 + 2}`, class: 'll-sched-svg' });
+      rows.forEach((row, t) => row.split(' ').forEach((loc, r) => {
+        const cls = loc === 'slot' ? 'cell-run' : loc === 'pocket' ? 'cell-wait' : loc === 'ramp' ? 'cell-ready' : null;
+        if (cls) svg.appendChild(el('rect', { x: 1 + t * 16, y: 1 + r * 10, width: 13, height: 7, rx: 1.5, class: cls }));
+      }));
+      const label = document.createElement('div'); label.className = 'll-sched-label';
+      label.innerHTML = `<b>${esc(slotWord(+slots))}</b>, ${rows.length} ticks a cycle<br>${esc(names.join(', '))}`;
+      wrap.appendChild(svg); wrap.appendChild(label); box.appendChild(wrap);
+    }
   }
   function renderLegend() {
     const g = V.gloss;

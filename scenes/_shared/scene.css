@@ -80,6 +80,12 @@ loop-scene .ll-beat { fill: var(--ll-lit); opacity: 0.55; }
 loop-scene .ruler { stroke: var(--ll-muted); }
 loop-scene .cycle { stroke: var(--ll-rule); stroke-width: 1; stroke-dasharray: 2 3; }
 loop-scene .vmark { fill: var(--ll-stall); }
+loop-scene .ll-schedules { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 8px 18px; padding: 8px 6px 4px; }
+loop-scene .ll-sched { display: grid; grid-template-columns: 170px 1fr; gap: 10px; align-items: center; padding: 6px 8px; border: 1px solid transparent; border-radius: 6px; }
+loop-scene .ll-sched.on { border-color: var(--ll-lit); background: var(--ll-lit-soft); }
+loop-scene .ll-sched-svg { width: 100%; height: auto; }
+loop-scene .ll-sched-label { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 11px; color: var(--ll-muted); line-height: 1.5; }
+loop-scene .ll-sched-label b { color: var(--ll-ink); font-weight: 500; }
 loop-scene .ll-tkey { display: flex; flex-wrap: wrap; gap: 6px 16px; font-family: "IBM Plex Mono", Menlo, monospace; font-size: 11px; color: var(--ll-muted); padding: 2px 6px 4px; align-items: center; }
 loop-scene .ll-tkey i { display: inline-block; width: 14px; height: 9px; margin-right: 5px; vertical-align: -1px; }
 loop-scene .ll-tkey .k-run { background: var(--ll-lit); }
