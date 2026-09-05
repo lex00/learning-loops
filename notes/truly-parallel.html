@@ -1,0 +1,314 @@
+<title>Truly Parallel</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --ground: #F3F5F7; --ink: #172033; --muted: #64708A; --rule: #D3D9E2; --track: #B8C1CF;
+    --lit: #0F7B6C; --lit-soft: #D6EDE8; --stall: #B4472F; --stall-soft: #F3DDD6; --marble: #2B4C8C; --code-bg: #E8ECF1;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #12171F; --ink: #E6EAF0; --muted: #93A0B4; --rule: #2C3543; --track: #3A4557;
+      --lit: #3FBFA8; --lit-soft: #16332F; --stall: #E07A5F; --stall-soft: #3A241D; --marble: #7FA3E8; --code-bg: #1C2330;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #12171F; --ink: #E6EAF0; --muted: #93A0B4; --rule: #2C3543; --track: #3A4557;
+    --lit: #3FBFA8; --lit-soft: #16332F; --stall: #E07A5F; --stall-soft: #3A241D; --marble: #7FA3E8; --code-bg: #1C2330;
+  }
+  body { background: var(--ground); color: var(--ink); font-family: "Source Serif 4", Georgia, serif; font-size: 17px; line-height: 1.6; }
+  main { max-width: 72ch; margin: 0 auto; padding: 56px 24px 96px; display: flex; flex-direction: column; gap: 44px; }
+  h1, h2, h3 { font-family: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif; text-wrap: balance; line-height: 1.15; margin: 0; }
+  h1 { font-size: 40px; font-weight: 700; letter-spacing: -0.01em; }
+  h2 { font-size: 24px; font-weight: 600; padding-top: 20px; border-top: 1px solid var(--rule); }
+  h3 { font-size: 16px; font-weight: 600; }
+  p { margin: 0; }
+  .eyebrow { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  header { display: flex; flex-direction: column; gap: 14px; }
+  header p.lede { font-size: 19px; line-height: 1.45; max-width: 58ch; }
+  section { display: flex; flex-direction: column; gap: 16px; }
+  .word { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 0.9em; background: var(--code-bg); padding: 1px 6px; border-radius: 3px; white-space: nowrap; }
+  figure { margin: 0; display: flex; flex-direction: column; gap: 10px; }
+  figure svg { width: 100%; height: auto; display: block; }
+  figcaption { font-size: 14px; color: var(--muted); font-style: italic; }
+  .legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 6px 20px; font-size: 15px; }
+  .legend span:first-child { font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; }
+  .tablewrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 14.5px; font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; padding: 8px 12px 8px 0; vertical-align: top; border-bottom: 1px solid var(--rule); }
+  th { font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; font-size: 13.5px; color: var(--muted); }
+  td:first-child { font-weight: 600; white-space: nowrap; }
+  td i { color: var(--stall); font-style: normal; font-family: "IBM Plex Mono", Menlo, monospace; font-size: 12px; white-space: nowrap; }
+  tr.key td { background: var(--lit-soft); }
+  tr.key td:first-child { border-left: 3px solid var(--lit); padding-left: 8px; }
+  .variants { min-width: 760px; }
+  .beats { min-width: 600px; }
+  ul, ol { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; font-size: 15.5px; }
+  li::marker { color: var(--muted); }
+  .lesson { border-left: 3px solid var(--lit); padding-left: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .ask { border-left: 3px solid var(--stall); padding-left: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .ask b, .lesson b { font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 600px) { .pair { grid-template-columns: 1fr; } }
+  .pair > div { display: flex; flex-direction: column; gap: 6px; }
+  footer { font-size: 14px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 16px; }
+</style>
+
+<main>
+  <header>
+    <p class="eyebrow">Scene design &middot; 2026-09-05 &middot; concurrency, scene two</p>
+    <h1>Truly Parallel</h1>
+    <p class="lede">A marble does nothing but compute. It never reaches a wait point, so nothing it does can let another marble run. Two lanes are two cores. Whether both lanes move, and whether anything can pull a marble off a lane, is the whole scene. Six variants, one track.</p>
+  </header>
+
+  <section>
+    <h2>The lesson</h2>
+    <div class="lesson">
+      <p><b>Misconception it corrects.</b> "Threads run my code in parallel." In Python threads the platform has two lanes and a padlock, and only the marble holding the padlock moves. Three marbles of pure work take ten ticks on two lanes, exactly what they take on one. Threads chop the work up. They do not make it faster.</p>
+      <p><b>What should be burned in after staring.</b> Two lanes are two cores. The padlock decides how many marbles move at once, and the claw decides whether a marble that keeps running can be taken off its lane. Drop the padlock and both lanes move: ten ticks become six. Take away the claw and a marble keeps its lane until it is done, so the marble behind it waits the whole time.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>The track</h2>
+    <figure>
+      <svg viewBox="0 0 720 340" role="img" aria-label="Track layout: a runnable ramp along the bottom feeds a lift on the left, which raises marbles onto a running platform with two lanes across the top. A gate stands at the start of lane two. A claw hangs over the platform. There is no trapdoor and no pocket. Marbles that finish roll off the platform end into a done tray, which recycles onto the ramp.">
+        <defs>
+          <style>
+            .t { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 11px; fill: var(--muted); }
+            .tk { fill: var(--ink); }
+            .rail { stroke: var(--track); stroke-width: 3; fill: none; }
+            .rail-lit { stroke: var(--lit); stroke-width: 3; fill: none; }
+            .thin { stroke: var(--track); stroke-width: 1.5; fill: none; }
+            .ink { stroke: var(--ink); stroke-width: 1.5; fill: none; }
+            .dash { stroke-dasharray: 5 4; }
+            .stall { stroke: var(--stall); stroke-width: 3; fill: none; }
+          </style>
+        </defs>
+
+        <!-- lift shaft -->
+        <rect x="150" y="44" width="22" height="246" rx="4" class="thin"/>
+        <path d="M161 282 V56" class="thin dash"/>
+        <path d="M155 64 L161 54 L167 64" class="thin"/>
+        <text x="161" y="308" text-anchor="middle" class="t">scheduler</text>
+        <text x="161" y="322" text-anchor="middle" class="t">(the lift)</text>
+
+        <!-- claw rail and claw -->
+        <path d="M180 14 H450" class="thin dash"/>
+        <path d="M300 14 V30" class="thin"/>
+        <path d="M290 30 H310 M290 30 V42 M310 30 V42" class="thin"/>
+        <text x="322" y="24" class="t tk">claw</text>
+        <text x="322" y="38" class="t">(the scheduler's timer)</text>
+
+        <!-- lane 2, a second core, with the gate at its start -->
+        <path d="M172 62 H450" class="rail-lit"/>
+        <path d="M204 50 V74" class="stall"/>
+        <text x="204" y="44" text-anchor="middle" class="t tk">gate</text>
+        <!-- lane 1 -->
+        <path d="M172 90 H450" class="rail-lit"/>
+        <text x="330" y="118" text-anchor="middle" class="t tk">running</text>
+        <text x="330" y="132" text-anchor="middle" class="t">(two lanes are two cores)</text>
+
+        <!-- padlock carried by the running marble, drawn just below its lane -->
+        <path d="M220 96 a4 4 0 0 1 8 0 V99" class="ink"/>
+        <rect x="215.5" y="99" width="17" height="10" rx="2" fill="var(--ground)" class="ink"/>
+        <text x="224" y="106.6" text-anchor="middle" class="t tk" style="font-size: 6.5px">GIL</text>
+
+        <!-- done tray -->
+        <path d="M450 90 C480 90 500 110 500 140 V180" class="rail"/>
+        <path d="M486 182 h28 v14 h-28 z" class="rail"/>
+        <text x="540" y="192" class="t tk">done</text>
+        <path d="M500 196 V262" class="thin dash"/>
+        <text x="540" y="240" class="t">(tray tips, three</text>
+        <text x="540" y="254" class="t">new marbles created)</text>
+
+        <!-- runnable ramp along bottom, right to left into the lift -->
+        <path d="M520 262 H172" class="rail"/>
+        <path d="M184 256 L174 262 L184 268" class="thin"/>
+        <text x="346" y="290" text-anchor="middle" class="t tk">runnable</text>
+        <text x="346" y="304" text-anchor="middle" class="t">(ramp, first in first out)</text>
+        <text x="600" y="266" class="t">created</text>
+
+        <!-- marbles: one-dot moving on lane 1 with the padlock, two-dot stalled at the gate on lane 2, three-dot on the ramp -->
+        <circle cx="240" cy="82" r="8" fill="var(--lit)"/>
+        <circle cx="240" cy="82" r="1.6" fill="var(--ground)"/>
+        <circle cx="192" cy="54" r="8" fill="var(--marble)"/>
+        <circle cx="188.5" cy="54" r="1.6" fill="var(--ground)"/><circle cx="195.5" cy="54" r="1.6" fill="var(--ground)"/>
+        <circle cx="200" cy="254" r="8" fill="var(--marble)"/>
+        <circle cx="195" cy="254" r="1.6" fill="var(--ground)"/><circle cx="200" cy="254" r="1.6" fill="var(--ground)"/><circle cx="205" cy="254" r="1.6" fill="var(--ground)"/>
+      </svg>
+      <figcaption>The base track with the trapdoor and pockets removed and two things added: a gate at the start of lane two, and a claw over the platform. Drawn here in the Python threads variant: one-dot moves and holds the GIL, two-dot is on a core and cannot move, three-dot waits on the ramp.</figcaption>
+    </figure>
+    <div class="legend">
+      <span>Ramp</span><span>runnable, in arrival order; a preempted marble rejoins at the back</span>
+      <span>Lift</span><span>the scheduler; raises the front marble when a lane is free</span>
+      <span>Lanes</span><span>cores; two in every variant but asyncio, which has one thread</span>
+      <span>Padlock</span><span>the GIL; the one marble that may move, however many lanes there are</span>
+      <span>Gate</span><span>where a marble on a core waits for the padlock; red while a marble stands at it</span>
+      <span>Claw</span><span>the scheduler's timer; after a marble has run its quantum, and only if another marble is waiting, pulls it back to the ramp</span>
+      <span>Tray</span><span>done; tips to create the next three marbles</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>The six variants</h2>
+    <p>Every row is a real property of the runtime, not a metaphor. Two dimensions do all the work here: how many marbles may move at once, and whether a claw exists. The words are the ones each runtime's own docs and source use.</p>
+    <div class="tablewrap">
+      <table class="variants">
+        <thead><tr><th></th><th>Python threads</th><th>Python asyncio</th><th>Python free-threaded</th><th>Python multiprocessing</th><th>Go</th><th>Rust tokio</th></tr></thead>
+        <tbody>
+          <tr><td>The marble is a</td><td>thread</td><td>task</td><td>thread</td><td>process</td><td>goroutine</td><td>task</td></tr>
+          <tr><td>Marble weight</td><td>heavy</td><td>light</td><td>heavy</td><td>heaviest</td><td>light</td><td>light</td></tr>
+          <tr><td>Lanes drawn</td><td>2</td><td>1</td><td>2</td><td>2</td><td>2</td><td>2</td></tr>
+          <tr><td>Marbles that move at once</td><td>1</td><td>1</td><td>2</td><td>2</td><td>2</td><td>2</td></tr>
+          <tr><td>What lets a marble move</td><td>the GIL</td><td>the loop</td><td>a core</td><td>a core</td><td>a P</td><td>a worker thread</td></tr>
+          <tr><td>The lift is</td><td>the OS scheduler</td><td>the event loop</td><td>the OS scheduler</td><td>the OS scheduler</td><td>the runtime scheduler</td><td>the tokio runtime</td></tr>
+          <tr><td>The claw is</td><td>the switch interval, 5 ms by default</td><td>none</td><td>the OS time slice</td><td>the OS time slice</td><td>sysmon, after 10 ms</td><td>none</td></tr>
+          <tr><td>Word on the platform</td><td><span class="word">holds the GIL</span></td><td><span class="word">running</span></td><td><span class="word">running on a core</span></td><td><span class="word">running on a core</span></td><td><span class="word">running on a P</span></td><td><span class="word">polled</span></td></tr>
+          <tr><td>Word at the gate</td><td><span class="word">waiting for the GIL</span></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td>Word at the claw</td><td><span class="word">drops the GIL</span></td><td>never: <span class="word">blocks the loop</span></td><td><span class="word">preempted</span></td><td><span class="word">preempted</span></td><td><span class="word">preempted</span></td><td>never: <span class="word">blocks the worker</span></td></tr>
+          <tr><td>Word at the tray</td><td><span class="word">exits</span></td><td><span class="word">done</span></td><td><span class="word">exits</span></td><td><span class="word">exits</span></td><td><span class="word">returns</span></td><td><span class="word">completes</span></td></tr>
+          <tr><td>Ticks a cycle</td><td>10</td><td>10</td><td>6</td><td>6</td><td>6</td><td>7</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Six runtimes, four schedules. Threads and asyncio tie at ten ticks, and that tie is the lesson: a padlock on two lanes is one lane. Free-threaded Python, multiprocessing, and Go share a schedule, two lanes and a claw. Tokio has the lanes and no claw, and pays one tick for it. Toggling threads to free-threaded is the beat that answers the misconception: the gate opens, the padlock vanishes, and the marble that was standing at the gate starts to move.</p>
+  </section>
+
+  <section>
+    <h2>The skeleton and the beats</h2>
+    <p>Each marble has the same authored skeleton: run three ticks of work, done. There is no trapdoor. The schedule is derived from that skeleton by the variant's rules: how many lanes the lift may fill, how many marbles may move at once, and whether the claw pulls a marble that has run two ticks straight when another marble is waiting behind it. The quantum is two ticks in every variant that has a claw, so the OS time slice, Python's switch interval, and Go's ten milliseconds are drawn alike. The four tables below were derived by a twenty-line simulation, not written by hand.</p>
+
+    <h3>Python asyncio, one lane</h3>
+    <div class="tablewrap">
+      <table class="beats">
+        <thead><tr><th>Tick</th><th>Lane 1</th><th>Lane 2</th><th>Ramp</th><th>Done</th><th>What just happened</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>&#9679;</td><td></td><td>&#9679;&#9679; &#9679;&#9679;&#9679;</td><td></td><td>Lift raises one-dot. <span class="word">running</span></td></tr>
+          <tr class="key"><td>2</td><td>&#9679;</td><td></td><td>&#9679;&#9679; &#9679;&#9679;&#9679;</td><td></td><td>One-dot keeps computing. It never awaits, so the loop is stuck behind it. Nothing else can run.</td></tr>
+          <tr><td>3</td><td>&#9679;</td><td></td><td>&#9679;&#9679; &#9679;&#9679;&#9679;</td><td></td><td>Still one-dot.</td></tr>
+          <tr><td>4</td><td>&#9679;&#9679;</td><td></td><td>&#9679;&#9679;&#9679;</td><td>&#9679;</td><td>One-dot <span class="word">done</span>. Lift raises two-dot.</td></tr>
+          <tr><td>5</td><td>&#9679;&#9679;</td><td></td><td>&#9679;&#9679;&#9679;</td><td>&#9679;</td><td>Two-dot keeps computing.</td></tr>
+          <tr><td>6</td><td>&#9679;&#9679;</td><td></td><td>&#9679;&#9679;&#9679;</td><td>&#9679;</td><td>Still two-dot.</td></tr>
+          <tr><td>7</td><td>&#9679;&#9679;&#9679;</td><td></td><td></td><td>&#9679; &#9679;&#9679;</td><td>Two-dot <span class="word">done</span>. Lift raises three-dot.</td></tr>
+          <tr><td>8</td><td>&#9679;&#9679;&#9679;</td><td></td><td></td><td>&#9679; &#9679;&#9679;</td><td>Three-dot keeps computing.</td></tr>
+          <tr><td>9</td><td>&#9679;&#9679;&#9679;</td><td></td><td></td><td>&#9679; &#9679;&#9679;</td><td>Still three-dot.</td></tr>
+          <tr><td>10</td><td></td><td></td><td>&#9679; &#9679;&#9679; &#9679;&#9679;&#9679;</td><td></td><td>Three-dot <span class="word">done</span>. The tray tips. Three marbles are created. Loop.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Python threads, two lanes and a padlock</h3>
+    <div class="tablewrap">
+      <table class="beats">
+        <thead><tr><th>Tick</th><th>Lane 1</th><th>Lane 2</th><th>Ramp</th><th>Done</th><th>What just happened</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>&#9679;</td><td>&#9679;&#9679; <i>gate</i></td><td>&#9679;&#9679;&#9679;</td><td></td><td>Lift raises one-dot to lane 1 and two-dot to lane 2. One-dot takes the GIL. Two-dot is on a core and cannot move: <span class="word">waiting for the GIL</span>.</td></tr>
+          <tr><td>2</td><td>&#9679;</td><td>&#9679;&#9679; <i>gate</i></td><td>&#9679;&#9679;&#9679;</td><td></td><td>One-dot keeps computing. Two-dot still stands at the gate.</td></tr>
+          <tr class="key"><td>3</td><td>&#9679;&#9679;&#9679; <i>gate</i></td><td>&#9679;&#9679;</td><td>&#9679;</td><td></td><td>Switch interval. The claw pulls one-dot off and it <span class="word">drops the GIL</span>. Two-dot takes it and the gate opens for it. Lift raises three-dot to lane 1, where it stands at the gate. Still exactly one marble moving. This is the beat to stare at.</td></tr>
+          <tr><td>4</td><td>&#9679;&#9679;&#9679; <i>gate</i></td><td>&#9679;&#9679;</td><td>&#9679;</td><td></td><td>Two-dot keeps computing.</td></tr>
+          <tr><td>5</td><td>&#9679;&#9679;&#9679;</td><td>&#9679; <i>gate</i></td><td>&#9679;&#9679;</td><td></td><td>Switch interval. The claw pulls two-dot off and it <span class="word">drops the GIL</span>. Three-dot takes it. Lift raises one-dot to lane 2, at the gate.</td></tr>
+          <tr><td>6</td><td>&#9679;&#9679;&#9679;</td><td>&#9679; <i>gate</i></td><td>&#9679;&#9679;</td><td></td><td>Three-dot keeps computing.</td></tr>
+          <tr><td>7</td><td>&#9679;&#9679; <i>gate</i></td><td>&#9679;</td><td>&#9679;&#9679;&#9679;</td><td></td><td>Switch interval. The claw pulls three-dot off. One-dot takes the GIL for its last tick of work. Lift raises two-dot to lane 1, at the gate.</td></tr>
+          <tr><td>8</td><td>&#9679;&#9679;</td><td>&#9679;&#9679;&#9679; <i>gate</i></td><td></td><td>&#9679;</td><td>One-dot <span class="word">exits</span>. Two-dot takes the GIL. Lift raises three-dot to lane 2, at the gate.</td></tr>
+          <tr><td>9</td><td></td><td>&#9679;&#9679;&#9679;</td><td></td><td>&#9679; &#9679;&#9679;</td><td>Two-dot <span class="word">exits</span>. Three-dot takes the GIL. Lane 1 is empty and no marble is left to fill it.</td></tr>
+          <tr><td>10</td><td></td><td></td><td>&#9679; &#9679;&#9679; &#9679;&#9679;&#9679;</td><td></td><td>Three-dot <span class="word">exits</span>. The tray tips. Three marbles are created. Loop.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Rust tokio, two lanes and no claw</h3>
+    <div class="tablewrap">
+      <table class="beats">
+        <thead><tr><th>Tick</th><th>Lane 1</th><th>Lane 2</th><th>Ramp</th><th>Done</th><th>What just happened</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>&#9679;</td><td>&#9679;&#9679;</td><td>&#9679;&#9679;&#9679;</td><td></td><td>Lift raises one-dot to lane 1 and two-dot to lane 2. Both <span class="word">polled</span>, on two worker threads.</td></tr>
+          <tr><td>2</td><td>&#9679;</td><td>&#9679;&#9679;</td><td>&#9679;&#9679;&#9679;</td><td></td><td>Both keep computing.</td></tr>
+          <tr class="key"><td>3</td><td>&#9679;</td><td>&#9679;&#9679;</td><td>&#9679;&#9679;&#9679;</td><td></td><td>Both keep computing. Three-dot has waited three ticks. Neither future has returned Pending, and nothing pulls a task off its worker. This is the beat to stare at.</td></tr>
+          <tr><td>4</td><td>&#9679;&#9679;&#9679;</td><td></td><td></td><td>&#9679; &#9679;&#9679;</td><td>One-dot and two-dot <span class="word">complete</span>. Lift raises three-dot to lane 1. Lane 2 has nothing left to run.</td></tr>
+          <tr><td>5</td><td>&#9679;&#9679;&#9679;</td><td></td><td></td><td>&#9679; &#9679;&#9679;</td><td>Three-dot keeps computing, alone.</td></tr>
+          <tr><td>6</td><td>&#9679;&#9679;&#9679;</td><td></td><td></td><td>&#9679; &#9679;&#9679;</td><td>Still three-dot.</td></tr>
+          <tr><td>7</td><td></td><td></td><td>&#9679; &#9679;&#9679; &#9679;&#9679;&#9679;</td><td></td><td>Three-dot <span class="word">completes</span>. The tray tips. Three marbles are created. Loop.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Go, Python free-threaded, and Python multiprocessing: two lanes and a claw</h3>
+    <div class="tablewrap">
+      <table class="beats">
+        <thead><tr><th>Tick</th><th>Lane 1</th><th>Lane 2</th><th>Ramp</th><th>Done</th><th>What just happened</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>&#9679;</td><td>&#9679;&#9679;</td><td>&#9679;&#9679;&#9679;</td><td></td><td>Lift raises one-dot to lane 1 and two-dot to lane 2. Both <span class="word">running on a P</span>.</td></tr>
+          <tr><td>2</td><td>&#9679;</td><td>&#9679;&#9679;</td><td>&#9679;&#9679;&#9679;</td><td></td><td>Both keep computing.</td></tr>
+          <tr class="key"><td>3</td><td>&#9679;&#9679;&#9679;</td><td>&#9679;&#9679;</td><td>&#9679;</td><td></td><td>One-dot has run its quantum and three-dot is waiting, so one-dot is <span class="word">preempted</span>: the claw pulls it off to the back of the ramp. Lift raises three-dot to lane 1. This is the beat to stare at.</td></tr>
+          <tr><td>4</td><td>&#9679;&#9679;&#9679;</td><td>&#9679;</td><td></td><td>&#9679;&#9679;</td><td>Two-dot <span class="word">returns</span>. Lift raises one-dot to lane 2 for its last tick. Three-dot has also run its quantum, but no one is waiting, so the claw stays up.</td></tr>
+          <tr><td>5</td><td>&#9679;&#9679;&#9679;</td><td></td><td></td><td>&#9679;&#9679; &#9679;</td><td>One-dot <span class="word">returns</span>. Three-dot keeps computing.</td></tr>
+          <tr><td>6</td><td></td><td></td><td>&#9679; &#9679;&#9679; &#9679;&#9679;&#9679;</td><td></td><td>Three-dot <span class="word">returns</span>. The tray tips. Three marbles are created. Loop.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Three things fall out of the derivation. Threads and asyncio land on the same ten ticks by different routes, one chopped up and one whole, which is the honest picture of the GIL. The claw makes the platform fair, so every marble is moving by tick three, and here it also makes the cycle shorter, because a marble can give back a lane before it is done. And tokio's tail is a straggler: two marbles finish together and the third runs alone on a wide platform, which is what a CPU-bound task does to a work-stealing runtime with more tasks than workers.</p>
+  </section>
+
+  <section>
+    <h2>Morph rules</h2>
+    <p>Toggling a variant changes parameters, and the scene continues from its current state. Nothing is reset. Marbles keep their dots and their position.</p>
+    <ul>
+      <li>Threads to free-threaded. The padlock vanishes, the gate opens, and the marble standing at it starts moving at once. Both lanes are lit. This is the toggle the scene is built around.</li>
+      <li>Free-threaded to threads. The padlock appears on the marble that has run longest. The other marble on the platform stops where it is and the gate closes behind it. It moves again when the padlock comes to it.</li>
+      <li>Any two-lane variant to asyncio. Lane two goes dashed. The marble on it rolls back to the front of the ramp, as in the base scene, the one moment a marble moves backward.</li>
+      <li>Asyncio to any two-lane variant. The lift raises the front marble onto lane two at once, to the gate under threads, moving under the rest.</li>
+      <li>Claw appears (tokio to Go, asyncio to threads). It is checked at the next quantum boundary. A marble that has already run two ticks with another waiting is pulled off then.</li>
+      <li>Claw vanishes (Go to tokio, threads to asyncio). Marbles on lanes keep them until done. The ramp waits.</li>
+      <li>Marble weight tweens, and words swap in place, as in the base scene.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Timing and rhythm</h2>
+    <div class="pair">
+      <div>
+        <h3>The beat</h3>
+        <p>Same as the base scene. One tick is one held picture, about a second, then four tenths of a second of movement.</p>
+      </div>
+      <div>
+        <h3>The cycle</h3>
+        <p>Fourteen seconds under threads and asyncio, ten under tokio, eight and a half with a claw. The cycle length is itself the lesson, so the strip and the schedule panel should show it plainly.</p>
+      </div>
+      <div>
+        <h3>The claw</h3>
+        <p>Descends during the movement window of a quantum beat, closes on the marble, and carries it over the lift to the back of the ramp. It moves only when it takes something. It never descends for show.</p>
+      </div>
+      <div>
+        <h3>The quantum</h3>
+        <p>Two ticks everywhere. Real intervals differ by orders of magnitude, from Python's five milliseconds to a Linux time slice, and none of that is the lesson. The beat bar can tick twice per quantum so the switch is anticipated.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Deliberately left out</h2>
+    <ul>
+      <li>No trapdoor and no pockets. A marble here never needs a reply. The moment it would, we are back in Waiting on I/O.</li>
+      <li>No memory. Whether the two moving marbles share a heap is the sharing scene's question, with a box on the platform to fight over.</li>
+      <li>No start-up cost for processes. Starting a process means starting Python again, and it deserves a beat, but not here. Multiprocessing is drawn as free-threaded with a heavier marble.</li>
+      <li>No cooperative yield. A tokio task can call yield_now, an asyncio task can await sleep(0), and a Python thread can call time.sleep(0). Those are the running marble choosing to leave, and they belong to a later scene about being polite.</li>
+      <li>No code. The words are the vocabulary of the runtime.</li>
+      <li>No predict card yet. The natural place is tick three under threads: which marble moves now?</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Calls made, and calls to make</h2>
+    <ul>
+      <li>The stalled thread stops behind a red bar that stands just ahead of it, wherever it is on the lane: at the lane start when it is fresh, at its mark when it came back from the ramp. This is the concept note's gate, drawn where the thread actually is, in view of the marble that passes.</li>
+      <li>A preempted marble goes back to the ramp, at the back, and keeps its progress. When the lift raises it again it rolls along the lane to the mark it had reached and carries on from there, which is what saving and restoring a thread's state looks like. The ramp already means runnable and waiting for a lane, which is what a preempted thread is.</li>
+      <li>The claw belongs to whoever the lift is. Under threads it is drawn on the lift and labelled with the switch interval. Under Go it is the runtime's. Under asyncio and tokio the hook is empty.</li>
+      <li>Python threads draw two lanes, not one. The lanes are cores, and the point is that the second core is there and unused. The slot count in the manifest becomes two numbers: lanes, and marbles that may move.</li>
+      <li>The manifest gains one field per variant, <span class="word">preempt</span>, and one skeleton with no wait segment. The state machine is the base scene's with pockets removed and the claw rule added. The validators need one new cell state for a marble at the gate.</li>
+      <li>To decide: whether the claw is drawn taking the marble across the top and down the lift shaft, or simply lifting it and dropping it onto the ramp below. The first reads as the scheduler doing it. The second is quicker.</li>
+      <li>To decide: whether the switch interval should be a visible timer on the claw, counting two ticks, or left to the beat bar.</li>
+    </ul>
+  </section>
+
+  <footer>Designed on paper on 2026-09-05. The skeleton, the lane and padlock rules, the claw rule, and the vocabulary are the contract; how the trace is computed can change.</footer>
+</main>

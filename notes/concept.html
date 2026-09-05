@@ -207,20 +207,20 @@
 
   <section>
     <h2>First topic: concurrency</h2>
-    <p>Concurrency is a topic, not a concept. Each row below is a candidate scene. Rows where all three participants do the same thing differently, like handing off a value, make good early scenes. Rows with a gap are where the roster shrinks and a gate appears.</p>
+    <p>Concurrency is a topic, not a concept. Each row below is a candidate scene, ranked by value for a novice: how early the mistake bites, and how differently the four participants behave on the track. Rows where all four do the same thing differently, like handing off a value, make good early scenes. Rows with a gap are where the roster shrinks and a gate appears. Rows two and three share a setup, a marble that does CPU work and never reaches the trapdoor, and can be one scene.</p>
     <div class="tablewrap">
       <table>
         <thead>
-          <tr><th>Capability</th><th>Python threads</th><th>Python asyncio</th><th>Go</th></tr>
+          <tr><th></th><th>Capability</th><th>Python threads</th><th>Python asyncio</th><th>Go</th><th>Rust tokio</th></tr>
         </thead>
         <tbody>
-          <tr><td>Gives up control at a wait point</td><td>blocks, OS switches</td><td>await</td><td>parks on a channel or call</td></tr>
-          <tr><td>Gets interrupted mid-run</td><td>yes</td><td class="no">no</td><td>yes</td></tr>
-          <tr><td>Runs truly in parallel</td><td class="part">only during IO, gate otherwise</td><td class="no">no</td><td>yes</td></tr>
-          <tr><td>Hands a value to another unit</td><td>Queue</td><td>asyncio.Queue</td><td>channel</td></tr>
-          <tr><td>Shares state behind a lock</td><td>Lock</td><td>rarely needed</td><td>Mutex</td></tr>
-          <tr><td>Waits on many at once</td><td>join each</td><td>gather</td><td>WaitGroup or select</td></tr>
-          <tr><td>Gets cancelled from outside</td><td class="no">no clean way</td><td>Task.cancel</td><td>context</td></tr>
+          <tr><td>1</td><td>Waiting on I/O</td><td>blocks, OS switches</td><td>await</td><td>parks on a channel or call</td><td>returns Pending</td></tr>
+          <tr><td>2</td><td>Truly parallel</td><td class="part">only during IO, gate otherwise</td><td class="no">no</td><td>yes</td><td>yes, one worker per core</td></tr>
+          <tr><td>3</td><td>Gets interrupted mid-run</td><td>yes</td><td class="no">no</td><td>yes</td><td class="no">no</td></tr>
+          <tr><td>4</td><td>Hands a value to another unit</td><td>Queue</td><td>asyncio.Queue</td><td>channel</td><td>mpsc channel</td></tr>
+          <tr><td>5</td><td>Shares state behind a lock</td><td>Lock</td><td>rarely needed</td><td>Mutex</td><td>Mutex in an Arc</td></tr>
+          <tr><td>6</td><td>Waits on many at once</td><td>join each</td><td>gather</td><td>WaitGroup or select</td><td>join! or select!</td></tr>
+          <tr><td>7</td><td>Gets cancelled from outside</td><td class="no">no clean way</td><td>Task.cancel</td><td>context</td><td>abort, or drop the future</td></tr>
         </tbody>
       </table>
     </div>
