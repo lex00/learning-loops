@@ -45,6 +45,48 @@
     "go",
     "tokio"
   ],
+  "table": [
+    [
+      "The marble is",
+      "gloss.marble.0"
+    ],
+    [
+      "Slots on the platform",
+      "slots"
+    ],
+    [
+      "The slot is",
+      "slotName"
+    ],
+    [
+      "The lift is",
+      "liftName"
+    ],
+    [
+      "Lock handed around",
+      "token|none"
+    ],
+    [
+      "Memory",
+      "gloss.memory.0"
+    ],
+    [
+      "Word at the trapdoor",
+      "gloss.trap.0"
+    ],
+    [
+      "Word when the reply lands",
+      "gloss.ready.0"
+    ],
+    [
+      "Word on the platform",
+      "gloss.run.0"
+    ],
+    [
+      "Word at the tray",
+      "gloss.done.0"
+    ]
+  ],
   "variants": {
     "threads": {
       "label": "Python threads",
@@ -92,6 +134,10 @@
         "token": [
           "the padlock",
           "the GIL, drawn as a lock. The marble carrying it is the one running Python. It hands the lock back to the hook when it blocks, and the next marble takes it on the way up."
+        ],
+        "memory": [
+          "shared",
+          "every thread reads and writes the same objects. The GIL keeps the interpreter safe while they do. Your own data still needs your own locks."
         ]
       },
       "token": "GIL"
@@ -142,6 +188,10 @@
         "token": [
           "no lock",
           "there is nothing to hand around. The loop runs one task, and when that task awaits, the loop runs the next ready one."
+        ],
+        "memory": [
+          "shared",
+          "every task lives on one thread with one heap. A task hands an object to another for free, and nothing else runs until it awaits."
         ]
       }
     },
@@ -191,6 +241,10 @@
         "token": [
           "no lock",
           "a P is a slot, not a lock. Two goroutines run at the same instant."
+        ],
+        "memory": [
+          "shared",
+          "goroutines share one address space. Go's advice is to share memory by communicating over channels, but nothing stops a plain write."
         ]
       }
     },
@@ -240,6 +294,10 @@
         "token": [
           "no lock",
           "a worker thread is a slot, not a lock. Two tasks run at the same instant."
+        ],
+        "memory": [
+          "shared",
+          "tasks share one address space. A task that may move between workers must be Send, and the compiler checks it."
         ]
       }
     },
@@ -288,7 +346,11 @@
         ],
         "token": [
           "no lock",
-          "this build removed the GIL. Threads share memory, so the locks that guard your own data are now yours to write."
+          "this build removed the GIL, so nothing is handed around. Two threads run Python at the same instant."
+        ],
+        "memory": [
+          "shared, no GIL",
+          "threads read and write the same objects with nothing guarding the interpreter. The locks that guard your own data are yours to write."
         ]
       }
     },
@@ -337,7 +399,11 @@
         ],
         "token": [
           "no shared lock",
-          "each process has its own GIL, so nothing is handed between them. The price is that they share no objects either; everything crosses by copying."
+          "each process has its own GIL, so nothing is handed between them."
+        ],
+        "memory": [
+          "its own",
+          "each process is a whole interpreter with its own memory. Nothing is shared, so a result comes back only as a copy, sent across a pipe."
         ]
       }
     }

@@ -4,7 +4,7 @@ export class Sim {
   constructor(manifest, slotCount) {
     this.skeleton = manifest.skeleton;
     this.count = manifest.marbles;
-    this.slotCount = slotCount;
+    this.slotCount = +slotCount;
     this.tick = 0; this.cycleTick = 0; this.recycled = false;
     this.create();
   }
@@ -49,7 +49,9 @@ export class Sim {
     if (n < this.slotCount && this.slots[1]) { const m = this.slots[1]; this.slots[1] = null; m.slot = -1; m.loc = 'ramp'; this.ramp.unshift(m); ev.push({ type: 'demote', m }); }
     this.slotCount = n; this.fill(ev); return ev;
   }
+  setRules(key) { return this.setSlots(+key); }
   held() { return this.ramp.length > 0 && this.slots.slice(0, this.slotCount).every(Boolean); }
   idle() { return !this.slots.some(Boolean) && this.ramp.length === 0 && this.tray.length < this.count; }
   locs() { return this.marbles.map(m => m.loc); }
+  places() { return [...this.slots.filter(Boolean), ...this.pockets.filter(Boolean), ...this.ramp, ...this.tray]; }
 }

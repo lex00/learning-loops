@@ -4,19 +4,16 @@ const manifests = import.meta.glob('../../scenes/*/manifest.json', { eager: true
 const { scene } = Astro.props;
 const m = manifests[`../../scenes/${scene}/manifest.json`];
 const keys = m.variantOrder;
-const rows = [
-  ['The marble is', k => m.variants[k].gloss.marble[0]],
-  ['Slots on the platform', k => String(m.variants[k].slots)],
-  ['The slot is', k => m.variants[k].slotName],
-  ['The lift is', k => m.variants[k].liftName],
-  ['Lock handed around', k => (m.variants[k].token ? m.variants[k].token : 'none')],
-  ['Word at the trapdoor', k => m.variants[k].gloss.trap[0]],
-  ['Word when the reply lands', k => m.variants[k].gloss.ready[0]],
-  ['Word on the platform', k => m.variants[k].gloss.run[0]],
-  ['Word at the tray', k => m.variants[k].gloss.done[0]],
-];
+// rows come from the manifest as [label, path]: the path walks the variant, a variant's schedule key expands to its schedule,
+// and "|fallback" after the path fills in when the value is missing
+const get = (v, path) => {
+  const [p, fallback = ''] = path.split('|');
+  const ctx = { ...v, schedule: m.schedules ? m.schedules[v.schedule] : v.schedule };
+  const val = p.split('.').reduce((o, k) => (o == null ? undefined : o[k]), ctx);
+  return val == null || val === '' ? fallback : String(val);
+};
 ---
 <table>
   <thead><tr><th></th>{keys.map(k => <th>{m.variants[k].label}</th>)}</tr></thead>
-  <tbody>{rows.map(([label, f]) => <tr><td><strong>{label}</strong></td>{keys.map(k => <td>{f(k)}</td>)}</tr>)}</tbody>
+  <tbody>{m.table.map(([label, path]) => <tr><td><strong>{label}</strong></td>{keys.map(k => <td>{get(m.variants[k], path)}</td>)}</tr>)}</tbody>
 </table>

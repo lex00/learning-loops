@@ -9,3 +9,5 @@ export function loadManifest(slug) { return JSON.parse(readFileSync(join(ROOT, '
 export async function loadSim(slug) { return (await import(pathToFileURL(join(ROOT, 'scenes', slug, 'sim.js')).href)).Sim; }
 export const BASE = (readFileSync(join(ROOT, 'astro.config.mjs'), 'utf8').match(/base:\s*'([^']*)'/) || [, ''])[1].replace(/\/$/, '');
 export const pageUrl = (m) => `${BASE}/${m.topic}/${m.slug}/`;
+// the key a variant's schedule is filed under in the manifest's beat tables: a named schedule, or the slot count
+export const rulesKey = (v) => String(v.schedule ?? v.slots);
