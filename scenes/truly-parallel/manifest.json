@@ -1,0 +1,461 @@
+{
+  "slug": "truly-parallel",
+  "title": "Truly parallel",
+  "topic": "concurrency",
+  "order": 2,
+  "lede": "A marble does nothing but compute. It never reaches a wait point, so nothing it does can let another marble run. Two lanes are two cores. Whether both lanes move, and whether anything can pull a marble off a lane, is the whole scene.",
+  "misconception": "Threads run my code in parallel. In Python threads the platform has two lanes and a padlock, and only the marble holding the padlock moves. Three marbles of pure work take ten ticks on two lanes, exactly what they take on one. Threads chop the work up. They do not make it faster.",
+  "look": "Stare at the switch under Python threads. The claw pulls the moving marble off, the padlock changes hands, and the marble that stood at the gate starts to move. Two lanes, and still one marble moving. Then toggle to free-threaded and watch the gate open.",
+  "marbles": 3,
+  "names": [
+    "one-dot",
+    "two-dot",
+    "three-dot"
+  ],
+  "skeleton": [
+    {
+      "kind": "run",
+      "ticks": 3
+    }
+  ],
+  "quantum": 2,
+  "timing": {
+    "periods": {
+      "slow": 2000,
+      "normal": 1400,
+      "fast": 900
+    },
+    "default": "normal",
+    "moveFraction": 0.3,
+    "wordFraction": 0.85
+  },
+  "anchor": "threads",
+  "variantOrder": [
+    "threads",
+    "asyncio",
+    "freethreaded",
+    "multiproc",
+    "go",
+    "tokio"
+  ],
+  "schedules": {
+    "one-lane": {
+      "label": "one lane",
+      "lanes": 1,
+      "movers": 1,
+      "preempt": false,
+      "ticks": 10
+    },
+    "padlock": {
+      "label": "two lanes, one padlock",
+      "lanes": 2,
+      "movers": 1,
+      "preempt": true,
+      "ticks": 10
+    },
+    "no-claw": {
+      "label": "two lanes, no claw",
+      "lanes": 2,
+      "movers": 2,
+      "preempt": false,
+      "ticks": 7
+    },
+    "claw": {
+      "label": "two lanes and a claw",
+      "lanes": 2,
+      "movers": 2,
+      "preempt": true,
+      "ticks": 6
+    }
+  },
+  "table": [
+    [
+      "The marble is",
+      "gloss.marble.0"
+    ],
+    [
+      "Lanes",
+      "schedule.lanes"
+    ],
+    [
+      "Marbles that move at once",
+      "schedule.movers"
+    ],
+    [
+      "What lets a marble move",
+      "gloss.lane.0"
+    ],
+    [
+      "The lift is",
+      "liftName"
+    ],
+    [
+      "The claw is",
+      "clawName|none"
+    ],
+    [
+      "Lock handed around",
+      "token|none"
+    ],
+    [
+      "Word on the platform",
+      "gloss.run.0"
+    ],
+    [
+      "Word at the gate",
+      "words.gate|no gate"
+    ],
+    [
+      "Word at the claw",
+      "words.claw"
+    ],
+    [
+      "Word at the tray",
+      "gloss.done.0"
+    ],
+    [
+      "Ticks a cycle",
+      "schedule.ticks"
+    ]
+  ],
+  "variants": {
+    "threads": {
+      "label": "Python threads",
+      "schedule": "padlock",
+      "weight": 1.5,
+      "token": "GIL",
+      "liftName": "the OS scheduler",
+      "clawName": "switch interval, 5 ms",
+      "lane2": "a second core",
+      "note": "Two lanes because there are two cores, and one padlock because there is one GIL. Only the thread holding it runs Python. Every switch interval the claw makes the holder drop it.",
+      "words": {
+        "run": "holds the GIL",
+        "gate": "waiting for the GIL",
+        "claw": "drops the GIL",
+        "done": "exits"
+      },
+      "gloss": {
+        "marble": [
+          "a thread",
+          "an operating-system thread running Python code. It is heavy because the OS gives each one its own stack."
+        ],
+        "lane": [
+          "the GIL",
+          "the OS puts a thread on each core, and it does. Only the thread holding the Global Interpreter Lock runs Python, so one marble moves however many lanes there are."
+        ],
+        "lift": [
+          "the OS scheduler",
+          "the operating system puts threads on cores. Python decides who holds the GIL."
+        ],
+        "claw": [
+          "the switch interval",
+          "every 5 ms by default, the interpreter asks the thread holding the GIL to drop it so a waiting thread can take it. That is sys.setswitchinterval. The thread keeps its place and picks up where it left off."
+        ],
+        "run": [
+          "holds the GIL",
+          "this thread is the one running Python."
+        ],
+        "gate": [
+          "waiting for the GIL",
+          "this thread is on a core and cannot run Python until the lock comes to it. The red bar stands just ahead of it, wherever it stopped."
+        ],
+        "done": [
+          "exits",
+          "the thread function returned."
+        ],
+        "token": [
+          "the padlock",
+          "the GIL, drawn as a lock. The marble carrying it is the one running Python. The claw makes it drop the lock, and the marble at the gate takes it."
+        ]
+      }
+    },
+    "asyncio": {
+      "label": "Python asyncio",
+      "schedule": "one-lane",
+      "weight": 1,
+      "liftName": "the event loop",
+      "clawName": "",
+      "lane2": "no second lane",
+      "note": "One lane and no claw. A task that only computes never awaits, so the loop never gets control back. Nothing else runs until it is done.",
+      "words": {
+        "run": "running",
+        "gate": "",
+        "claw": "blocks the loop",
+        "done": "done"
+      },
+      "gloss": {
+        "marble": [
+          "a task",
+          "a coroutine wrapped so the event loop can schedule it. It is light because it is just a Python object."
+        ],
+        "lane": [
+          "the loop",
+          "one event loop on one thread. There is no second lane to fill."
+        ],
+        "lift": [
+          "the event loop",
+          "runs the next ready task, but only when the running task hands control back. A task that only computes never does."
+        ],
+        "claw": [
+          "no claw",
+          "nothing can take a running task off the loop. A CPU-bound task blocks the loop until it returns."
+        ],
+        "run": [
+          "running",
+          "the loop is executing this task, and will be until the task awaits or returns."
+        ],
+        "gate": [
+          "no gate",
+          "there is no second lane, so nothing stands at a gate."
+        ],
+        "done": [
+          "done",
+          "the coroutine returned."
+        ],
+        "token": [
+          "no lock",
+          "one lane needs no lock."
+        ]
+      }
+    },
+    "freethreaded": {
+      "label": "Python free-threaded",
+      "schedule": "claw",
+      "weight": 1.5,
+      "liftName": "the OS scheduler",
+      "clawName": "OS time slice",
+      "lane2": "a second core",
+      "note": "Two lanes, no padlock, and a claw. With no GIL, a thread runs whenever the OS gives it a core, and the OS takes the core back when its time slice ends.",
+      "words": {
+        "run": "running on a core",
+        "gate": "",
+        "claw": "preempted",
+        "done": "exits"
+      },
+      "gloss": {
+        "marble": [
+          "a thread",
+          "an operating-system thread on the free-threaded build of Python 3.14. It is heavy for the same reason, its own stack."
+        ],
+        "lane": [
+          "a core",
+          "with no GIL, two threads run Python at the same instant, one per core."
+        ],
+        "lift": [
+          "the OS scheduler",
+          "puts threads on cores and takes them off. Nothing in Python holds it back."
+        ],
+        "claw": [
+          "the OS time slice",
+          "when a thread has used its slice and another is runnable, the OS preempts it and puts the other on the core. The thread keeps its place and picks up where it left off."
+        ],
+        "run": [
+          "running on a core",
+          "this thread is executing Python on a core of its own."
+        ],
+        "gate": [
+          "no gate",
+          "no lock guards the second lane. A thread on a core runs."
+        ],
+        "done": [
+          "exits",
+          "the thread function returned."
+        ],
+        "token": [
+          "no lock",
+          "this build removed the GIL, so nothing is handed around."
+        ]
+      }
+    },
+    "multiproc": {
+      "label": "Python multiprocessing",
+      "schedule": "claw",
+      "weight": 1.65,
+      "liftName": "the OS scheduler",
+      "clawName": "OS time slice",
+      "lane2": "a second core",
+      "note": "Two lanes and a claw, with the heaviest marble. Each process is a whole interpreter with a GIL of its own, so two run Python at once and the OS shares the cores between them.",
+      "words": {
+        "run": "running on a core",
+        "gate": "",
+        "claw": "preempted",
+        "done": "exits"
+      },
+      "gloss": {
+        "marble": [
+          "a process",
+          "a separate interpreter with its own memory. The heaviest marble here: starting one means starting Python again."
+        ],
+        "lane": [
+          "a core",
+          "each process has its own GIL, so they never contend. Two run Python at once."
+        ],
+        "lift": [
+          "the OS scheduler",
+          "the operating system schedules processes onto cores."
+        ],
+        "claw": [
+          "the OS time slice",
+          "when a process has used its slice and another is runnable, the OS preempts it. The process keeps its place and picks up where it left off."
+        ],
+        "run": [
+          "running on a core",
+          "this process is executing on a core of its own."
+        ],
+        "gate": [
+          "no gate",
+          "each process has a GIL of its own, so none of them waits for another."
+        ],
+        "done": [
+          "exits",
+          "the process's function returned."
+        ],
+        "token": [
+          "no shared lock",
+          "each process has its own GIL, so nothing is handed between them."
+        ]
+      }
+    },
+    "go": {
+      "label": "Go",
+      "schedule": "claw",
+      "weight": 1,
+      "liftName": "the runtime scheduler",
+      "clawName": "sysmon, 10 ms",
+      "lane2": "a second P",
+      "note": "Two lanes and a claw. Two goroutines run at once, one per P, and a goroutine that has run for 10 ms is preempted so the others get a turn.",
+      "words": {
+        "run": "running on a P",
+        "gate": "",
+        "claw": "preempted",
+        "done": "returns"
+      },
+      "gloss": {
+        "marble": [
+          "a goroutine",
+          "a function the Go runtime schedules. It is light because it starts with a tiny stack."
+        ],
+        "lane": [
+          "a P",
+          "a processor, the scheduling context a goroutine must hold to run. There are GOMAXPROCS of them, one per core by default, and two are drawn here."
+        ],
+        "lift": [
+          "the runtime scheduler",
+          "Go's own scheduler moves goroutines onto Ps, independently of the operating system."
+        ],
+        "claw": [
+          "sysmon",
+          "a runtime thread that watches for a goroutine running longer than 10 ms and sends it a preemption signal. Since Go 1.14 this works even inside a tight loop. The goroutine keeps its place and picks up where it left off."
+        ],
+        "run": [
+          "running on a P",
+          "this goroutine holds a P and is executing."
+        ],
+        "gate": [
+          "no gate",
+          "a P is a slot, not a lock."
+        ],
+        "done": [
+          "returns",
+          "the goroutine's function returned."
+        ],
+        "token": [
+          "no lock",
+          "a P is a slot, not a lock. Two goroutines run at the same instant."
+        ]
+      }
+    },
+    "tokio": {
+      "label": "Rust tokio",
+      "schedule": "no-claw",
+      "weight": 1,
+      "liftName": "the tokio runtime",
+      "clawName": "",
+      "lane2": "a second worker",
+      "note": "Two lanes and no claw. Two tasks are polled at once, one per worker thread, and a task that never returns Pending keeps its worker until it is done.",
+      "words": {
+        "run": "polled",
+        "gate": "",
+        "claw": "blocks the worker",
+        "done": "completes"
+      },
+      "gloss": {
+        "marble": [
+          "a task",
+          "a future spawned onto the runtime, a state machine on the heap that runs by being polled. It is light."
+        ],
+        "lane": [
+          "a worker thread",
+          "tokio's multi-thread runtime starts one per core by default. Two are drawn here."
+        ],
+        "lift": [
+          "the tokio runtime",
+          "its scheduler polls tasks on worker threads."
+        ],
+        "claw": [
+          "no claw",
+          "tokio never interrupts a poll. A future that computes without returning Pending blocks its worker, and the runtime cannot take the worker back. That is what spawn_blocking is for."
+        ],
+        "run": [
+          "polled",
+          "a worker thread is polling this task's future."
+        ],
+        "gate": [
+          "no gate",
+          "a worker thread is a slot, not a lock."
+        ],
+        "done": [
+          "completes",
+          "the future returned Poll::Ready with its value."
+        ],
+        "token": [
+          "no lock",
+          "a worker thread is a slot, not a lock. Two tasks run at the same instant."
+        ]
+      }
+    }
+  },
+  "expected": {
+    "one-lane": [
+      "slot ramp ramp",
+      "slot ramp ramp",
+      "slot ramp ramp",
+      "tray slot ramp",
+      "tray slot ramp",
+      "tray slot ramp",
+      "tray tray slot",
+      "tray tray slot",
+      "tray tray slot",
+      "ramp ramp ramp"
+    ],
+    "padlock": [
+      "slot gate ramp",
+      "slot gate ramp",
+      "ramp slot gate",
+      "ramp slot gate",
+      "gate ramp slot",
+      "gate ramp slot",
+      "slot gate ramp",
+      "tray slot gate",
+      "tray tray slot",
+      "ramp ramp ramp"
+    ],
+    "no-claw": [
+      "slot slot ramp",
+      "slot slot ramp",
+      "slot slot ramp",
+      "tray tray slot",
+      "tray tray slot",
+      "tray tray slot",
+      "ramp ramp ramp"
+    ],
+    "claw": [
+      "slot slot ramp",
+      "slot slot ramp",
+      "ramp slot slot",
+      "slot tray slot",
+      "tray tray slot",
+      "ramp ramp ramp"
+    ]
+  }
+}

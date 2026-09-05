@@ -1,6 +1,6 @@
 ---
 title: Waiting on I/O
-description: A unit of work reaches a point where it needs a reply from outside, leaves the running platform, and another runs. Python threads, Python asyncio, Go, and Rust tokio on one track.
+description: A unit of work reaches a point where it needs a reply from outside, leaves the running platform, and another runs. Python threads, asyncio, free-threaded Python, multiprocessing, Go, and Rust tokio on one track.
 sidebar:
   order: 1
 tableOfContents: false
@@ -17,13 +17,13 @@ import VariantTable from '../../../components/VariantTable.astro';
 
 **What should be burned in after staring.** The platform is narrow. The pockets are where time passes. A marble that becomes ready does not run until a slot opens, and in Python nothing but the running marble can open it.
 
-## The four runtimes
+## The six runtimes
 
 Every row is a real property of the runtime, not a metaphor. The slot is named for the thing that admits a marble to run. The words are the ones each runtime's own docs and source use.
 
 <VariantTable scene="waiting-on-io" />
 
-Threads and asyncio produce the same schedule in this scene. That is deliberate and true: for work that only waits on replies, one slot is one slot. The four two-slot runtimes share a schedule too. What separates them on this track is how heavy the marbles are and whether a lock changes hands. What a scheduler can do to a marble that never reaches the wait point is the next scene.
+Threads and asyncio produce the same schedule in this scene. That is deliberate and true: for work that only waits on replies, one slot is one slot. The four two-slot runtimes share a schedule too. What separates them on this track is how heavy the marbles are and whether a lock changes hands. What a scheduler can do to a marble that never reaches the wait point is the next scene, [Truly parallel](../truly-parallel/).
 
 ## Reading the track
 

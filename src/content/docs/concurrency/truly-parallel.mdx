@@ -1,0 +1,32 @@
+---
+title: Truly parallel
+description: A unit of work that only computes never gives up control. Two lanes are two cores. Whether both lanes move, and whether anything can pull a marble off, is what separates Python threads, asyncio, free-threaded Python, multiprocessing, Go, and Rust tokio.
+sidebar:
+  order: 2
+tableOfContents: false
+---
+
+import LoopScene from '../../../components/LoopScene.astro';
+import VariantTable from '../../../components/VariantTable.astro';
+
+<LoopScene scene="truly-parallel" />
+
+## The lesson
+
+**The misconception this corrects.** "Threads run my code in parallel." In Python threads the platform has two lanes and a padlock, and only the marble holding the padlock moves. Three marbles of pure work take ten ticks on two lanes, exactly what they take on one. Threads chop the work up. They do not make it faster.
+
+**What should be burned in after staring.** Two lanes are two cores. The padlock decides how many marbles move at once, and the claw decides whether a marble that keeps running can be taken off its lane. Drop the padlock and both lanes move: ten ticks become six. Take away the claw and a marble keeps its lane until it is done, so the marble behind it waits the whole time.
+
+## The six runtimes
+
+Every row is a real property of the runtime, not a metaphor. Two dimensions do all the work here: how many marbles may move at once, and whether a claw exists. The words are the ones each runtime's own docs and source use.
+
+<VariantTable scene="truly-parallel" />
+
+Six runtimes, four schedules. Threads and asyncio tie at ten ticks, and that tie is the lesson: a padlock on two lanes is one lane. Free-threaded Python, multiprocessing, and Go share a schedule, two lanes and a claw. Tokio has the lanes and no claw, and pays a tick for it. Toggle threads to free-threaded: the gate opens, the padlock vanishes, and the marble that was standing at the gate starts to move.
+
+## Reading the track
+
+Every marble has the same skeleton: three ticks of work, then done. There is no trapdoor, because a marble here never needs a reply. The schedule you see is derived from that skeleton by the runtime's rules: how many lanes the lift may fill, how many marbles may move at once, and whether the claw pulls a marble that has run two ticks straight while another waits behind it.
+
+Marbles carry one, two, or three dots so they can be followed without colour. Green means moving. A marble stopped behind a red bar is on a core and waiting for the padlock. The claw hangs over the platform in runtimes whose scheduler can interrupt a running marble, and it comes down only to take something. A marble the claw sets down keeps its progress: it rejoins the ramp at the back, and when the lift raises it again it rolls along the lane to the mark it had reached and carries on from there.
