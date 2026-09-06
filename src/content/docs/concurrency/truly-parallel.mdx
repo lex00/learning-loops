@@ -25,6 +25,8 @@ Every row is a real property of the runtime, not a metaphor. Two dimensions do a
 
 Six runtimes, four schedules. Threads and asyncio tie at ten ticks, and that tie is the lesson: a padlock on two lanes is one lane. Free-threaded Python, multiprocessing, and Go share a schedule, two lanes and a claw. Tokio has the lanes and no claw, and pays a tick for it. Toggle threads to free-threaded: the gate opens, the padlock vanishes, and the marble that was standing at the gate starts to move.
 
+A marble that leaves its lane on purpose, with nothing to wait for, is the next scene, [Yielding](../yielding/).
+
 ## Reading the track
 
 Every marble has the same skeleton: three ticks of work, then done. There is no trapdoor, because a marble here never needs a reply. The schedule you see is derived from that skeleton by the runtime's rules: how many lanes the lift may fill, how many marbles may move at once, and whether the claw pulls a marble that has run two ticks straight while another waits behind it.

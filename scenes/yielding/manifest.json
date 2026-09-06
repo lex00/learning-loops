@@ -1,0 +1,497 @@
+{
+  "slug": "yielding",
+  "title": "Yielding",
+  "topic": "concurrency",
+  "order": 3,
+  "lede": "A marble does one tick of work and then steps off its lane on purpose, with nothing to wait for. It goes to the back of the ramp and comes back later to finish. Toggle the runtime to see which schedulers needed the courtesy and which would have taken the lane anyway.",
+  "misconception": "Yielding is the same as waiting, and it is free. A marble that yields has nothing to wait for. It is runnable the moment it steps off, and it pays for the trip: it will not move again until the lift gets back to it. In the trace it shows as waiting for a lane, never as waiting on I/O.",
+  "look": "Stare at tick two. Under asyncio the yield is the only reason two-dot ever runs. Under Go the claw hangs there with nothing to do, because one-dot left a tick before it would have been taken. Then toggle to tokio: the third task gets a worker at tick two instead of tick four.",
+  "marbles": 3,
+  "names": [
+    "one-dot",
+    "two-dot",
+    "three-dot"
+  ],
+  "skeleton": [
+    {
+      "kind": "run",
+      "ticks": 1
+    },
+    {
+      "kind": "yield"
+    },
+    {
+      "kind": "run",
+      "ticks": 2
+    }
+  ],
+  "quantum": 2,
+  "timing": {
+    "periods": {
+      "slow": 2000,
+      "normal": 1400,
+      "fast": 900
+    },
+    "default": "normal",
+    "moveFraction": 0.3,
+    "wordFraction": 0.85
+  },
+  "anchor": "asyncio",
+  "variantOrder": [
+    "threads",
+    "asyncio",
+    "freethreaded",
+    "multiproc",
+    "go",
+    "tokio"
+  ],
+  "schedules": {
+    "one-lane": {
+      "label": "one lane",
+      "lanes": 1,
+      "movers": 1,
+      "preempt": false,
+      "ticks": 10
+    },
+    "padlock": {
+      "label": "two lanes, one padlock",
+      "lanes": 2,
+      "movers": 1,
+      "preempt": true,
+      "ticks": 10
+    },
+    "no-claw": {
+      "label": "two lanes, no claw",
+      "lanes": 2,
+      "movers": 2,
+      "preempt": false,
+      "ticks": 6
+    },
+    "claw": {
+      "label": "two lanes and a claw",
+      "lanes": 2,
+      "movers": 2,
+      "preempt": true,
+      "ticks": 6
+    }
+  },
+  "table": [
+    [
+      "The marble is",
+      "gloss.marble.0"
+    ],
+    [
+      "Lanes",
+      "schedule.lanes"
+    ],
+    [
+      "Marbles that move at once",
+      "schedule.movers"
+    ],
+    [
+      "What lets a marble move",
+      "gloss.lane.0"
+    ],
+    [
+      "The lift is",
+      "liftName"
+    ],
+    [
+      "The claw is",
+      "clawName|none"
+    ],
+    [
+      "Lock handed around",
+      "token|none"
+    ],
+    [
+      "Word at the yield",
+      "words.yield"
+    ],
+    [
+      "Word on the platform",
+      "gloss.run.0"
+    ],
+    [
+      "Word at the gate",
+      "words.gate|no gate"
+    ],
+    [
+      "Word at the tray",
+      "gloss.done.0"
+    ],
+    [
+      "Ticks a cycle",
+      "schedule.ticks"
+    ]
+  ],
+  "variants": {
+    "threads": {
+      "label": "Python threads",
+      "schedule": "padlock",
+      "weight": 1.5,
+      "token": "GIL",
+      "liftName": "the OS scheduler",
+      "clawName": "switch interval, 5 ms",
+      "lane2": "a second core",
+      "note": "Two lanes, one padlock, and a claw that never comes down. Every thread calls sleep(0) after its first tick and drops the GIL early. The claw would have made it drop the lock a tick later.",
+      "words": {
+        "run": "holds the GIL",
+        "gate": "waiting for the GIL",
+        "yield": "sleep(0)",
+        "claw": "drops the GIL",
+        "done": "exits"
+      },
+      "gloss": {
+        "marble": [
+          "a thread",
+          "an operating-system thread running Python code. It is heavy because the OS gives each one its own stack."
+        ],
+        "lane": [
+          "the GIL",
+          "the OS puts a thread on each core, and it does. Only the thread holding the Global Interpreter Lock runs Python, so one marble moves however many lanes there are."
+        ],
+        "lift": [
+          "the OS scheduler",
+          "the operating system puts threads on cores. Python decides who holds the GIL."
+        ],
+        "claw": [
+          "the switch interval",
+          "every 5 ms by default, the interpreter asks the thread holding the GIL to drop it so a waiting thread can take it. In this scene it never comes down: every marble yields before its quantum is up."
+        ],
+        "yield": [
+          "sleep(0), drops the GIL",
+          "time.sleep(0) releases the GIL and asks the OS to run another thread. The thread is runnable the moment it does it. It waits only for a core and the lock."
+        ],
+        "run": [
+          "holds the GIL",
+          "this thread is the one running Python."
+        ],
+        "gate": [
+          "waiting for the GIL",
+          "this thread is on a core and cannot run Python until the lock comes to it. The red bar stands just ahead of it, wherever it stopped."
+        ],
+        "done": [
+          "exits",
+          "the thread function returned."
+        ],
+        "token": [
+          "the padlock",
+          "the GIL, drawn as a lock. The marble carrying it is the one running Python. A yielding marble drops it, and the marble at the gate takes it."
+        ]
+      }
+    },
+    "asyncio": {
+      "label": "Python asyncio",
+      "schedule": "one-lane",
+      "weight": 1,
+      "liftName": "the event loop",
+      "clawName": "",
+      "lane2": "no second lane",
+      "note": "One lane and no claw. The yield is the only reason the other two tasks ever run. Take it away and one-dot holds the loop for three ticks.",
+      "words": {
+        "run": "running",
+        "gate": "",
+        "yield": "await sleep(0)",
+        "claw": "blocks the loop",
+        "done": "done"
+      },
+      "gloss": {
+        "marble": [
+          "a task",
+          "a coroutine wrapped so the event loop can schedule it. It is light because it is just a Python object."
+        ],
+        "lane": [
+          "the loop",
+          "one event loop on one thread. There is no second lane to fill."
+        ],
+        "lift": [
+          "the event loop",
+          "runs the next ready task, but only when the running task hands control back. Here every task does, once."
+        ],
+        "claw": [
+          "no claw",
+          "nothing can take a running task off the loop. If a task did not yield, it would block the loop until it returned."
+        ],
+        "yield": [
+          "await sleep(0)",
+          "asyncio.sleep(0) suspends the task for exactly one trip through the loop. The task is ready at once and goes to the back of the queue. It is the only way a task that computes lets the others run."
+        ],
+        "run": [
+          "running",
+          "the loop is executing this task, and will be until the task awaits or returns."
+        ],
+        "gate": [
+          "no gate",
+          "there is no second lane, so nothing stands at a gate."
+        ],
+        "done": [
+          "done",
+          "the coroutine returned."
+        ],
+        "token": [
+          "no lock",
+          "one lane needs no lock."
+        ]
+      }
+    },
+    "freethreaded": {
+      "label": "Python free-threaded",
+      "schedule": "claw",
+      "weight": 1.5,
+      "liftName": "the OS scheduler",
+      "clawName": "OS time slice",
+      "lane2": "a second core",
+      "note": "Two lanes, no padlock, and a claw that never comes down. A thread that yields after one tick is gone before its time slice ends.",
+      "words": {
+        "run": "running on a core",
+        "gate": "",
+        "yield": "sleep(0)",
+        "claw": "preempted",
+        "done": "exits"
+      },
+      "gloss": {
+        "marble": [
+          "a thread",
+          "an operating-system thread on the free-threaded build of Python 3.14. It is heavy for the same reason, its own stack."
+        ],
+        "lane": [
+          "a core",
+          "with no GIL, two threads run Python at the same instant, one per core."
+        ],
+        "lift": [
+          "the OS scheduler",
+          "puts threads on cores and takes them off. Nothing in Python holds it back."
+        ],
+        "claw": [
+          "the OS time slice",
+          "when a thread has used its slice and another is runnable, the OS preempts it. In this scene it never comes down: every marble yields before its quantum is up."
+        ],
+        "yield": [
+          "sleep(0)",
+          "with no GIL to drop, time.sleep(0) is a plain yield to the OS scheduler. The thread gives up its core and is runnable at once."
+        ],
+        "run": [
+          "running on a core",
+          "this thread is executing Python on a core of its own."
+        ],
+        "gate": [
+          "no gate",
+          "no lock guards the second lane. A thread on a core runs."
+        ],
+        "done": [
+          "exits",
+          "the thread function returned."
+        ],
+        "token": [
+          "no lock",
+          "this build removed the GIL, so nothing is handed around."
+        ]
+      }
+    },
+    "multiproc": {
+      "label": "Python multiprocessing",
+      "schedule": "claw",
+      "weight": 1.65,
+      "liftName": "the OS scheduler",
+      "clawName": "OS time slice",
+      "lane2": "a second core",
+      "note": "Two lanes and a claw that never comes down, with the heaviest marble. A process that yields after one tick is gone before its time slice ends.",
+      "words": {
+        "run": "running on a core",
+        "gate": "",
+        "yield": "sleep(0)",
+        "claw": "preempted",
+        "done": "exits"
+      },
+      "gloss": {
+        "marble": [
+          "a process",
+          "a separate interpreter with its own memory. The heaviest marble here: starting one means starting Python again."
+        ],
+        "lane": [
+          "a core",
+          "each process has its own GIL, so they never contend. Two run Python at once."
+        ],
+        "lift": [
+          "the OS scheduler",
+          "the operating system schedules processes onto cores."
+        ],
+        "claw": [
+          "the OS time slice",
+          "when a process has used its slice and another is runnable, the OS preempts it. In this scene it never comes down: every marble yields before its quantum is up."
+        ],
+        "yield": [
+          "sleep(0)",
+          "the process gives its core back to the OS scheduler and is runnable at once."
+        ],
+        "run": [
+          "running on a core",
+          "this process is executing on a core of its own."
+        ],
+        "gate": [
+          "no gate",
+          "each process has a GIL of its own, so none of them waits for another."
+        ],
+        "done": [
+          "exits",
+          "the process's function returned."
+        ],
+        "token": [
+          "no shared lock",
+          "each process has its own GIL, so nothing is handed between them."
+        ]
+      }
+    },
+    "go": {
+      "label": "Go",
+      "schedule": "claw",
+      "weight": 1,
+      "liftName": "the runtime scheduler",
+      "clawName": "sysmon, 10 ms",
+      "lane2": "a second P",
+      "note": "Two lanes and a claw that never comes down. Gosched sends a goroutine to the back of the run queue before sysmon has to.",
+      "words": {
+        "run": "running on a P",
+        "gate": "",
+        "yield": "Gosched",
+        "claw": "preempted",
+        "done": "returns"
+      },
+      "gloss": {
+        "marble": [
+          "a goroutine",
+          "a function the Go runtime schedules. It is light because it starts with a tiny stack."
+        ],
+        "lane": [
+          "a P",
+          "a processor, the scheduling context a goroutine must hold to run. There are GOMAXPROCS of them, one per core by default, and two are drawn here."
+        ],
+        "lift": [
+          "the runtime scheduler",
+          "Go's own scheduler moves goroutines onto Ps, independently of the operating system."
+        ],
+        "claw": [
+          "sysmon",
+          "a runtime thread that watches for a goroutine running longer than 10 ms and sends it a preemption signal. In this scene it never comes down: every marble yields before its quantum is up."
+        ],
+        "yield": [
+          "Gosched",
+          "Gosched, in the runtime package, yields the processor: the goroutine leaves its P and goes to the back of the global run queue, runnable at once. Since Go 1.14 you rarely need it, because sysmon preempts."
+        ],
+        "run": [
+          "running on a P",
+          "this goroutine holds a P and is executing."
+        ],
+        "gate": [
+          "no gate",
+          "a P is a slot, not a lock."
+        ],
+        "done": [
+          "returns",
+          "the goroutine's function returned."
+        ],
+        "token": [
+          "no lock",
+          "a P is a slot, not a lock. Two goroutines run at the same instant."
+        ]
+      }
+    },
+    "tokio": {
+      "label": "Rust tokio",
+      "schedule": "no-claw",
+      "weight": 1,
+      "liftName": "the tokio runtime",
+      "clawName": "",
+      "lane2": "a second worker",
+      "note": "Two lanes and no claw. yield_now is the only reason the third task gets a worker before the first two finish. It fixes the straggler from Truly parallel: seven ticks become six.",
+      "words": {
+        "run": "polled",
+        "gate": "",
+        "yield": "yield_now",
+        "claw": "blocks the worker",
+        "done": "completes"
+      },
+      "gloss": {
+        "marble": [
+          "a task",
+          "a future spawned onto the runtime, a state machine on the heap that runs by being polled. It is light."
+        ],
+        "lane": [
+          "a worker thread",
+          "tokio's multi-thread runtime starts one per core by default. Two are drawn here."
+        ],
+        "lift": [
+          "the tokio runtime",
+          "its scheduler polls tasks on worker threads."
+        ],
+        "claw": [
+          "no claw",
+          "tokio never interrupts a poll. A future that did not yield would block its worker until it returned."
+        ],
+        "yield": [
+          "yield_now",
+          "yield_now, from the task module, returns Pending once and wakes the task at once, so it goes to the back of the queue. It is how a CPU-bound task lets the others run."
+        ],
+        "run": [
+          "polled",
+          "a worker thread is polling this task's future."
+        ],
+        "gate": [
+          "no gate",
+          "a worker thread is a slot, not a lock."
+        ],
+        "done": [
+          "completes",
+          "the future returned Poll::Ready with its value."
+        ],
+        "token": [
+          "no lock",
+          "a worker thread is a slot, not a lock. Two tasks run at the same instant."
+        ]
+      }
+    }
+  },
+  "expected": {
+    "one-lane": [
+      "slot ramp ramp",
+      "ramp slot ramp",
+      "ramp ramp slot",
+      "slot ramp ramp",
+      "slot ramp ramp",
+      "tray slot ramp",
+      "tray slot ramp",
+      "tray tray slot",
+      "tray tray slot",
+      "ramp ramp ramp"
+    ],
+    "padlock": [
+      "slot gate ramp",
+      "ramp slot gate",
+      "gate ramp slot",
+      "slot gate ramp",
+      "slot gate ramp",
+      "tray slot gate",
+      "tray slot gate",
+      "tray tray slot",
+      "tray tray slot",
+      "ramp ramp ramp"
+    ],
+    "no-claw": [
+      "slot slot ramp",
+      "slot ramp slot",
+      "slot slot ramp",
+      "tray slot slot",
+      "tray tray slot",
+      "ramp ramp ramp"
+    ],
+    "claw": [
+      "slot slot ramp",
+      "slot ramp slot",
+      "slot slot ramp",
+      "tray slot slot",
+      "tray tray slot",
+      "ramp ramp ramp"
+    ]
+  }
+}

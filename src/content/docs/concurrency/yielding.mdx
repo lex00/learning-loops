@@ -1,0 +1,32 @@
+---
+title: Yielding
+description: A unit of work steps off its lane on purpose, with nothing to wait for, and comes back later to finish. Which schedulers needed the courtesy, and which would have taken the lane anyway, across Python threads, asyncio, free-threaded Python, multiprocessing, Go, and Rust tokio.
+sidebar:
+  order: 3
+tableOfContents: false
+---
+
+import LoopScene from '../../../components/LoopScene.astro';
+import VariantTable from '../../../components/VariantTable.astro';
+
+<LoopScene scene="yielding" />
+
+## The lesson
+
+**The misconception this corrects.** "Yielding is the same as waiting, and it is free." A marble that yields has nothing to wait for. It is runnable the moment it steps off, and it pays for the trip: it will not move again until the lift gets back to it. In the trace it shows as waiting for a lane, never as waiting on I/O.
+
+**What should be burned in after staring.** Under asyncio and tokio the yield is the only reason the other marbles ever run. Take it away and you are back in Truly parallel, where one-dot holds its lane for three ticks. Under the four runtimes with a claw, the claw would have taken the marble a tick later anyway. The polite marble just goes early and the claw never comes down.
+
+## The six runtimes
+
+Every row is a real property of the runtime, not a metaphor. The yield is the same act everywhere, leaving the lane with nothing to wait for. What differs is the word for it and whether anything else would have made the marble leave. The words are the ones each runtime's own docs and source use.
+
+<VariantTable scene="yielding" />
+
+Six runtimes, three schedules. One lane and one padlock both take ten ticks, as they did in the previous scene, but now every marble gets its first turn by tick three instead of waiting for the marble ahead to finish. Two lanes take six ticks with a claw or without one, because no marble ever runs long enough for the claw to fire. For tokio that is one tick better than before: the yield puts the third task on a worker at tick two, so nobody is left running alone at the end.
+
+## Reading the track
+
+Every marble has the same skeleton: one tick of work, a yield, two ticks of work. The yield point is the dot a third of the way along each lane. A marble that reaches it steps straight off, drops to the ramp, and rolls to the back. When the lift raises it again it rolls along the lane to its mark and finishes from there.
+
+Marbles carry one, two, or three dots so they can be followed without colour. Green means moving. A marble stopped behind a red bar is on a core and waiting for the padlock. The claw hangs over the platform in runtimes whose scheduler can interrupt a running marble, and in this scene it never comes down. Compare that with [Truly parallel](../truly-parallel/), where the same claw comes down every other tick.
