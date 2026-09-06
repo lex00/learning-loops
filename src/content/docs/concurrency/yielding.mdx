@@ -25,6 +25,8 @@ Every row is a real property of the runtime, not a metaphor. The yield is the sa
 
 Six runtimes, three schedules. One lane and one padlock both take ten ticks, as they did in the previous scene, but now every marble gets its first turn by tick three instead of waiting for the marble ahead to finish. Two lanes take six ticks with a claw or without one, because no marble ever runs long enough for the claw to fire. For tokio that is one tick better than before: the yield puts the third task on a worker at tick two, so nobody is left running alone at the end.
 
+A marble that hands a value to another marble, through a box with a size, is the next scene, [Handing off](../handing-off/).
+
 ## Reading the track
 
 Every marble has the same skeleton: one tick of work, a yield, two ticks of work. The yield point is the dot a third of the way along each lane. A marble that reaches it steps straight off, drops to the ramp, and rolls to the back. When the lift raises it again it rolls along the lane to its mark and finishes from there.

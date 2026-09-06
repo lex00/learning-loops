@@ -1,0 +1,36 @@
+---
+title: Handing off
+description: One unit of work makes values and another uses them, through a box with a size that stalls whichever end reaches it first, across Python threads, asyncio, free-threaded Python, multiprocessing, Go, and Rust tokio.
+sidebar:
+  order: 4
+tableOfContents: false
+---
+
+import LoopScene from '../../../components/LoopScene.astro';
+import VariantTable from '../../../components/VariantTable.astro';
+
+<LoopScene scene="handing-off" />
+
+## The lesson
+
+**The misconception this corrects.** "A queue makes them run at the same time, and sending is free." The box between them has a size, and it stalls whichever end reaches it first. A producer that fills it leaves its lane still holding the value it could not hand over. A consumer that finds it empty leaves its lane with nothing. Under one lane the two marbles never move together, however big the box is.
+
+**What should be burned in after staring.** Both ends pay for the box. A send into a full box waits, a receive from an empty box waits, and a marble that waits drops into a pocket and comes back through the ramp like any other marble that lost its lane. Room in the box only moves the stall around: a box of three under one lane still takes fifteen ticks, and the producer simply fills it before the consumer starts.
+
+## The six runtimes
+
+Every row is a real property of the runtime, not a metaphor. Three things separate them here: what the box is made of, whether a blocked send parks a thread or suspends a task, and whether the value crosses by reference or by copy. The words are the ones each runtime's own docs and source use.
+
+<VariantTable scene="handing-off" />
+
+Six runtimes, five schedules. One lane takes fifteen ticks and the padlock takes fifteen as well, because four ticks of producing and ten of consuming can only be laid end to end when one marble moves at a time. The other three schedules take eleven, since the producer and the consumer really do run at once in the gaps between stalls. A wider box does not rescue the single lane: three values of room is still fifteen ticks. Toggle to Go, where there is no box at all, and the producer stands at the channel holding its value until the consumer arrives to take it, four ticks in a pocket over the cycle.
+
+## Reading the track
+
+The two marbles have different skeletons. One-dot is the producer. It does a tick of work and then a send, three times over, with one last tick of its own at the end. Two-dot is the consumer. It does a tick of work to start, then a receive and three ticks of using what it got, three times over. Four ticks of work against ten. The producer's last tick and the consumer's first are there so that no exchange lands at the lift or at the tray.
+
+The box sits below the lanes with a slot for each value it can hold, and Go's unbuffered channel has no slot to draw. A marble that cannot send or cannot receive leaves its lane and drops into a pocket, holding whatever it holds. When the other end acts, it comes back down the pocket exit to the chute and the ramp, runnable, and the lift raises it to the mark its work had reached.
+
+A value is a small dot. It appears beside the producer while the producer makes it, flies into the box at the send, and flies out to the consumer at the receive, where it rides alongside and fades over the ticks it is used for. Under multiprocessing the two marbles wear a thin ring each, their own memory, and the value crosses by copy: a hollow dot splits off at the send and flies into the box while the original stays behind and fades. Every other runtime has one heap, so the solid dot itself moves.
+
+Marbles carry one or two dots so they can be followed without colour. Green means moving. A marble stopped behind a red bar is on a core and waiting for the padlock. A marble that comes back from a pocket rolls along its lane to the mark it had reached and carries on from there. The pockets are the ones from [Waiting on I/O](../waiting-on-io/), and the marks are the ones from [Yielding](../yielding/).

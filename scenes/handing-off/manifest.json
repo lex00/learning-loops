@@ -1,0 +1,829 @@
+{
+  "slug": "handing-off",
+  "title": "Handing off",
+  "topic": "concurrency",
+  "order": 4,
+  "lede": "One marble makes values and one uses them, and between them sits a box with a size. A send into a full box waits. A receive from an empty box waits. Toggle the runtime to see which end stalls, and notice that under one lane the two marbles never move at the same time however big the box is.",
+  "misconception": "A queue makes them run at the same time, and sending is free. The box has a size, and both ends stall on it: a send into a full box waits, a receive from an empty box waits, and a marble that waits leaves its lane and comes back through the ramp. Under one lane the producer and consumer never move together no matter how big the box is.",
+  "look": "Stare at the beat where the producer arrives at a full box and drops into a pocket. Then toggle to asyncio for one lane, the same box, and a cycle of fifteen ticks. Toggle to Go, which has no box at all, and the producer waits holding its value until the consumer takes it.",
+  "marbles": 2,
+  "names": [
+    "one-dot",
+    "two-dot"
+  ],
+  "cast": [
+    "producer",
+    "consumer"
+  ],
+  "roles": {
+    "producer": [
+      {
+        "kind": "run",
+        "ticks": 1
+      },
+      {
+        "kind": "send"
+      },
+      {
+        "kind": "run",
+        "ticks": 1
+      },
+      {
+        "kind": "send"
+      },
+      {
+        "kind": "run",
+        "ticks": 1
+      },
+      {
+        "kind": "send"
+      },
+      {
+        "kind": "run",
+        "ticks": 1
+      }
+    ],
+    "consumer": [
+      {
+        "kind": "run",
+        "ticks": 1
+      },
+      {
+        "kind": "recv"
+      },
+      {
+        "kind": "run",
+        "ticks": 3
+      },
+      {
+        "kind": "recv"
+      },
+      {
+        "kind": "run",
+        "ticks": 3
+      },
+      {
+        "kind": "recv"
+      },
+      {
+        "kind": "run",
+        "ticks": 3
+      }
+    ]
+  },
+  "quantum": 2,
+  "timing": {
+    "periods": {
+      "slow": 2000,
+      "normal": 1400,
+      "fast": 900
+    },
+    "default": "normal",
+    "moveFraction": 0.3,
+    "wordFraction": 0.85
+  },
+  "anchor": "asyncio",
+  "variantOrder": [
+    "threads",
+    "asyncio",
+    "freethreaded",
+    "multiproc",
+    "go",
+    "tokio"
+  ],
+  "schedules": {
+    "one-lane": {
+      "label": "one lane, a box of one",
+      "lanes": 1,
+      "movers": 1,
+      "preempt": false,
+      "box": 1,
+      "ticks": 15,
+      "room": "one value"
+    },
+    "one-lane-big": {
+      "label": "one lane, a box of three",
+      "lanes": 1,
+      "movers": 1,
+      "preempt": false,
+      "box": 3,
+      "ticks": 15,
+      "room": "three values"
+    },
+    "padlock": {
+      "label": "two lanes, one padlock, a box of one",
+      "lanes": 2,
+      "movers": 1,
+      "preempt": true,
+      "box": 1,
+      "ticks": 15,
+      "room": "one value"
+    },
+    "no-claw": {
+      "label": "two lanes, no claw, a box of one",
+      "lanes": 2,
+      "movers": 2,
+      "preempt": false,
+      "box": 1,
+      "ticks": 11,
+      "room": "one value"
+    },
+    "claw": {
+      "label": "two lanes and a claw, a box of one",
+      "lanes": 2,
+      "movers": 2,
+      "preempt": true,
+      "box": 1,
+      "ticks": 11,
+      "room": "one value"
+    },
+    "rendezvous": {
+      "label": "two lanes and a claw, no box",
+      "lanes": 2,
+      "movers": 2,
+      "preempt": true,
+      "box": 0,
+      "ticks": 11,
+      "room": "none, hand to hand"
+    }
+  },
+  "table": [
+    [
+      "The marble is",
+      "gloss.marble.0"
+    ],
+    [
+      "Lanes",
+      "schedule.lanes"
+    ],
+    [
+      "Marbles that move at once",
+      "schedule.movers"
+    ],
+    [
+      "The lift is",
+      "liftName"
+    ],
+    [
+      "The claw is",
+      "clawName|none"
+    ],
+    [
+      "Lock handed around",
+      "token|none"
+    ],
+    [
+      "The box is",
+      "boxName"
+    ],
+    [
+      "Room in the box",
+      "schedule.room"
+    ],
+    [
+      "The value crosses",
+      "gloss.crossing.0"
+    ],
+    [
+      "Word at a send",
+      "words.send"
+    ],
+    [
+      "Word at a receive",
+      "words.recv"
+    ],
+    [
+      "When the box is full",
+      "words.sendBlock"
+    ],
+    [
+      "When the box is empty",
+      "words.recvBlock"
+    ],
+    [
+      "When the box lets it go",
+      "words.wake"
+    ],
+    [
+      "Word on the platform",
+      "gloss.run.0"
+    ],
+    [
+      "Word at the gate",
+      "words.gate|no gate"
+    ],
+    [
+      "Word at the tray",
+      "gloss.done.0"
+    ],
+    [
+      "Ticks a cycle",
+      "schedule.ticks"
+    ]
+  ],
+  "variants": {
+    "threads": {
+      "label": "Python threads",
+      "schedule": "padlock",
+      "weight": 1.5,
+      "token": "GIL",
+      "liftName": "the OS scheduler",
+      "clawName": "switch interval, 5 ms",
+      "lane2": "a second core",
+      "boxName": "queue.Queue(maxsize=1)",
+      "crossing": "reference",
+      "shell": false,
+      "note": "Two lanes and one padlock, so one marble moves and the cycle is the same fifteen ticks as one lane. put blocks while the box is full and drops the GIL, which is the only reason the consumer ever runs. The claw hands the GIL to the producer while it stands at the gate, and a tick later the full box takes it away again.",
+      "words": {
+        "run": "holds the GIL",
+        "gate": "waiting for the GIL",
+        "claw": "drops the GIL",
+        "done": "exits",
+        "send": "put",
+        "recv": "get",
+        "sendBlock": "put blocks, drops the GIL",
+        "recvBlock": "get blocks, drops the GIL",
+        "wake": "runnable"
+      },
+      "gloss": {
+        "marble": [
+          "a thread",
+          "an operating-system thread running Python code. It is heavy because the OS gives each one its own stack."
+        ],
+        "lane": [
+          "the GIL",
+          "the OS puts a thread on each core, and it does. Only the thread holding the Global Interpreter Lock runs Python, so one marble moves however many lanes there are."
+        ],
+        "lift": [
+          "the OS scheduler",
+          "the operating system puts threads on cores. Python decides who holds the GIL."
+        ],
+        "claw": [
+          "the switch interval",
+          "every 5 ms by default, the interpreter asks the thread holding the GIL to drop it so a waiting thread can take it. A thread standing at the gate counts as waiting, so the claw comes down here."
+        ],
+        "box": [
+          "queue.Queue(maxsize=1)",
+          "a deque guarded by a lock, with a Condition on each side: one for threads waiting for room, one for threads waiting for an item."
+        ],
+        "send": [
+          "put",
+          "put takes the lock, appends the item, and notifies the side waiting for an item. With room in the queue it returns straight away."
+        ],
+        "recv": [
+          "get",
+          "get takes the lock, pops the oldest item, and notifies the side waiting for room. With an item in the queue it returns straight away."
+        ],
+        "full": [
+          "put blocks, drops the GIL",
+          "the producer waits on the not-full condition with its value in hand. Waiting on a condition releases the GIL, so the consumer can take it and empty the queue."
+        ],
+        "empty": [
+          "get blocks, drops the GIL",
+          "the consumer waits on the not-empty condition and drops the GIL while it waits. The producer can then run and put something in."
+        ],
+        "wake": [
+          "runnable",
+          "the other end notified the condition. The thread is ready, and still has to get the GIL back before it runs Python again."
+        ],
+        "run": [
+          "holds the GIL",
+          "this thread is the one running Python."
+        ],
+        "gate": [
+          "waiting for the GIL",
+          "this thread is on a core and cannot run Python until the lock comes to it. The red bar stands just ahead of it, wherever it stopped."
+        ],
+        "done": [
+          "exits",
+          "the thread function returned."
+        ],
+        "token": [
+          "the padlock",
+          "the GIL, drawn as a lock. The marble carrying it is the one running Python. A marble that blocks on the box drops it, and the marble at the gate takes it."
+        ],
+        "crossing": [
+          "by reference",
+          "both threads live in one interpreter, so the queue moves a pointer. The consumer gets the producer's object itself."
+        ]
+      }
+    },
+    "asyncio": {
+      "label": "Python asyncio",
+      "schedule": "one-lane",
+      "weight": 1,
+      "liftName": "the event loop",
+      "clawName": "",
+      "lane2": "no second lane",
+      "boxName": "asyncio.Queue(maxsize=1)",
+      "crossing": "reference",
+      "shell": false,
+      "note": "One lane, one box, no claw. The producer sends until the box is full and suspends there. Sending into a box with room never suspends, so nothing else runs until the box says stop.",
+      "words": {
+        "run": "running",
+        "gate": "",
+        "claw": "blocks the loop",
+        "done": "done",
+        "send": "await put",
+        "recv": "await get",
+        "sendBlock": "await put suspends",
+        "recvBlock": "await get suspends",
+        "wake": "ready"
+      },
+      "gloss": {
+        "marble": [
+          "a task",
+          "a coroutine wrapped so the event loop can schedule it. One-dot runs the producer coroutine, two-dot the consumer."
+        ],
+        "lane": [
+          "the loop",
+          "one event loop on one thread. There is no second lane to fill."
+        ],
+        "lift": [
+          "the event loop",
+          "runs the next ready task, but only when the running task suspends or returns. Here a task suspends only when the box stops it."
+        ],
+        "claw": [
+          "no claw",
+          "nothing can take a running task off the loop. A task that sends into a box with room keeps the loop."
+        ],
+        "box": [
+          "asyncio.Queue(maxsize=1)",
+          "a queue with room for one item. It lives in the loop, so no lock guards it."
+        ],
+        "send": [
+          "await put",
+          "put appends the item and returns at once if there is room. The await suspends the task only when the queue is full."
+        ],
+        "recv": [
+          "await get",
+          "get takes the oldest item and returns at once if there is one. The await suspends the task only when the queue is empty."
+        ],
+        "full": [
+          "await put suspends",
+          "the producer stops at the box with its value in hand and the loop runs someone else. This is the only wait point in the scene."
+        ],
+        "empty": [
+          "await get suspends",
+          "the consumer stops at the box with its hands empty and the loop runs someone else."
+        ],
+        "wake": [
+          "ready",
+          "the other end moved, so the queue wakes this task. It goes to the back of the ready queue and still has to wait for the loop."
+        ],
+        "run": [
+          "running",
+          "the loop is executing this task, and will be until the task suspends or returns."
+        ],
+        "gate": [
+          "no gate",
+          "there is no second lane, so nothing stands at a gate."
+        ],
+        "done": [
+          "done",
+          "the coroutine returned."
+        ],
+        "token": [
+          "no lock",
+          "one lane needs no lock."
+        ],
+        "crossing": [
+          "by reference",
+          "the same object goes in and comes out. Nothing is copied."
+        ]
+      }
+    },
+    "freethreaded": {
+      "label": "Python free-threaded",
+      "schedule": "claw",
+      "weight": 1.5,
+      "liftName": "the OS scheduler",
+      "clawName": "OS time slice",
+      "lane2": "a second core",
+      "boxName": "queue.Queue(maxsize=1)",
+      "crossing": "reference",
+      "shell": false,
+      "note": "Two lanes and no padlock, with a box of one and a cycle of eleven ticks. With no GIL, put and get contend only on the queue's own lock, and each holds it for as long as it takes to move one item. What stops the producer is the full box, not the interpreter.",
+      "words": {
+        "run": "running on a core",
+        "gate": "",
+        "claw": "preempted",
+        "done": "exits",
+        "send": "put",
+        "recv": "get",
+        "sendBlock": "put blocks",
+        "recvBlock": "get blocks",
+        "wake": "runnable"
+      },
+      "gloss": {
+        "marble": [
+          "a thread",
+          "an operating-system thread on the free-threaded build of Python 3.14. It is heavy for the same reason, its own stack."
+        ],
+        "lane": [
+          "a core",
+          "with no GIL, two threads run Python at the same instant, one per core."
+        ],
+        "lift": [
+          "the OS scheduler",
+          "puts threads on cores and takes them off. Nothing in Python holds it back."
+        ],
+        "claw": [
+          "the OS time slice",
+          "when a thread has used its slice and another is runnable, the OS preempts it. In this scene the box stops the producer first."
+        ],
+        "box": [
+          "queue.Queue(maxsize=1)",
+          "the same queue the threads build uses: a deque guarded by a lock, with a Condition on each side. That lock is now the only thing the two threads contend on."
+        ],
+        "send": [
+          "put",
+          "put takes the queue's lock, appends the item, and notifies the side waiting for an item. It holds the lock for one append."
+        ],
+        "recv": [
+          "get",
+          "get takes the queue's lock, pops the oldest item, and notifies the side waiting for room. It holds the lock for one pop."
+        ],
+        "full": [
+          "put blocks",
+          "the producer waits on the not-full condition until a get makes room. It drops the queue's lock while it waits, and there is no GIL to drop as well."
+        ],
+        "empty": [
+          "get blocks",
+          "the consumer waits on the not-empty condition until a put gives it something to take."
+        ],
+        "wake": [
+          "runnable",
+          "the other end notified the condition, and the OS gives the thread the next free core."
+        ],
+        "run": [
+          "running on a core",
+          "this thread is executing Python on a core of its own."
+        ],
+        "gate": [
+          "no gate",
+          "no lock guards the second lane. A thread on a core runs."
+        ],
+        "done": [
+          "exits",
+          "the thread function returned."
+        ],
+        "token": [
+          "no lock",
+          "this build removed the GIL, so nothing is handed around. The queue's own lock is held for a moment at a time and never travels."
+        ],
+        "crossing": [
+          "by reference",
+          "the two threads share one heap, so the queue moves a pointer and the consumer gets the producer's object itself."
+        ]
+      }
+    },
+    "multiproc": {
+      "label": "Python multiprocessing",
+      "schedule": "claw",
+      "weight": 1.65,
+      "liftName": "the OS scheduler",
+      "clawName": "OS time slice",
+      "lane2": "a second core",
+      "boxName": "multiprocessing.Queue(maxsize=1)",
+      "crossing": "copy",
+      "shell": true,
+      "note": "Two lanes, two whole interpreters, and a queue that is a pipe with a feeder thread behind it. put pickles the value and a semaphore holds it back while the queue is full; get reads the bytes and unpickles a copy in the other process. The schedule matches the free-threaded run, eleven ticks, and every value that crosses is built twice.",
+      "words": {
+        "run": "running on a core",
+        "gate": "",
+        "claw": "preempted",
+        "done": "exits",
+        "send": "put, pickles",
+        "recv": "get, unpickles",
+        "sendBlock": "put blocks",
+        "recvBlock": "get blocks",
+        "wake": "runnable"
+      },
+      "gloss": {
+        "marble": [
+          "a process",
+          "a separate interpreter with its own memory. The heaviest marble here: starting one means starting Python again."
+        ],
+        "lane": [
+          "a core",
+          "each process has its own GIL, so they never contend. Two run Python at once."
+        ],
+        "lift": [
+          "the OS scheduler",
+          "the operating system schedules processes onto cores."
+        ],
+        "claw": [
+          "the OS time slice",
+          "when a process has used its slice and another is runnable, the OS preempts it. In this scene the box stops the producer first."
+        ],
+        "box": [
+          "multiprocessing.Queue(maxsize=1)",
+          "a pipe, a feeder thread in the sending process, and a semaphore that counts the room. Nothing here is a deque the two processes can both see."
+        ],
+        "send": [
+          "put, pickles",
+          "put pickles the object onto an internal buffer and the feeder thread writes those bytes into the pipe. The call can return before the bytes reach the other end."
+        ],
+        "recv": [
+          "get, unpickles",
+          "get reads the bytes off the pipe and unpickles them into a new object in this process. The producer's object never moves."
+        ],
+        "full": [
+          "put blocks",
+          "the semaphore counting the room is at zero, so put waits on it until a get gives one back."
+        ],
+        "empty": [
+          "get blocks",
+          "the pipe has no bytes to read, so get waits until the feeder writes some."
+        ],
+        "wake": [
+          "runnable",
+          "the other process moved the semaphore or wrote to the pipe, and the OS gives this one the next free core."
+        ],
+        "run": [
+          "running on a core",
+          "this process is executing on a core of its own."
+        ],
+        "gate": [
+          "no gate",
+          "each process has a GIL of its own, so none of them waits for another."
+        ],
+        "done": [
+          "exits",
+          "the process's function returned."
+        ],
+        "token": [
+          "no shared lock",
+          "each process has its own GIL, so nothing is handed between them."
+        ],
+        "crossing": [
+          "by copy",
+          "the processes share no memory. The value is pickled going in and unpickled coming out, so the consumer holds a copy and the producer's object stays in the producer."
+        ]
+      }
+    },
+    "go": {
+      "label": "Go",
+      "schedule": "rendezvous",
+      "weight": 1,
+      "liftName": "the runtime scheduler",
+      "clawName": "sysmon, 10 ms",
+      "lane2": "a second P",
+      "boxName": "make(chan T), unbuffered",
+      "crossing": "reference",
+      "shell": false,
+      "note": "Two lanes, a claw, and no box at all. An unbuffered channel holds nothing, so the sender parks until a receiver arrives and the value goes hand to hand, copied straight into the receiver's variable. The producer parks twice and spends four ticks in a pocket, more than in any other schedule here.",
+      "words": {
+        "run": "running on a P",
+        "gate": "",
+        "claw": "preempted",
+        "done": "returns",
+        "send": "ch <- v",
+        "recv": "<-ch",
+        "sendBlock": "parks, no receiver",
+        "recvBlock": "parks, no sender",
+        "wake": "runnable"
+      },
+      "gloss": {
+        "marble": [
+          "a goroutine",
+          "a function the Go runtime schedules. It is light because it starts with a tiny stack."
+        ],
+        "lane": [
+          "a P",
+          "a processor, the scheduling context a goroutine must hold to run. There are GOMAXPROCS of them, one per core by default, and two are drawn here."
+        ],
+        "lift": [
+          "the runtime scheduler",
+          "Go's own scheduler moves goroutines onto Ps, independently of the operating system."
+        ],
+        "claw": [
+          "sysmon",
+          "a runtime thread that watches for a goroutine running longer than 10 ms and sends it a preemption signal. In this scene the channel stops the producer first."
+        ],
+        "box": [
+          "make(chan T), unbuffered",
+          "a channel with no room. It holds no values at all, only the queues of senders and receivers waiting at it."
+        ],
+        "send": [
+          "ch <- v",
+          "the send parks the goroutine until a receiver arrives, then copies the value straight into the receiver's variable. Nothing holds it in between."
+        ],
+        "recv": [
+          "<-ch",
+          "the receive parks the goroutine until a sender arrives, and takes the value from that sender directly."
+        ],
+        "full": [
+          "parks, no receiver",
+          "there is no room to fill, so any send made with no receiver waiting parks. The goroutine keeps its value while it waits and gives up its P."
+        ],
+        "empty": [
+          "parks, no sender",
+          "a receive made with no sender waiting parks the goroutine and gives up its P."
+        ],
+        "wake": [
+          "runnable",
+          "the other end reached the channel and the handoff happened. The goroutine is queued for a P."
+        ],
+        "run": [
+          "running on a P",
+          "this goroutine holds a P and is executing."
+        ],
+        "gate": [
+          "no gate",
+          "a P is a slot, not a lock."
+        ],
+        "done": [
+          "returns",
+          "the goroutine's function returned."
+        ],
+        "token": [
+          "no lock",
+          "a P is a slot, not a lock. Two goroutines run at the same instant."
+        ],
+        "crossing": [
+          "hand to hand",
+          "the value is copied straight into the receiver's variable, inside one address space. Send a pointer or a slice and what arrives points at the same data."
+        ]
+      }
+    },
+    "tokio": {
+      "label": "Rust tokio",
+      "schedule": "no-claw",
+      "weight": 1,
+      "liftName": "the tokio runtime",
+      "clawName": "",
+      "lane2": "a second worker",
+      "boxName": "mpsc::channel(1)",
+      "crossing": "reference",
+      "shell": false,
+      "note": "Two lanes, no claw, and a channel bounded at one. send().await returns Pending while the channel is full, so the task gives up its worker and the receiver wakes it when it takes a value. Nothing preempts a task here, and nothing has to: the box is what stops the producer.",
+      "words": {
+        "run": "polled",
+        "gate": "",
+        "claw": "blocks the worker",
+        "done": "completes",
+        "send": "send().await",
+        "recv": "recv().await",
+        "sendBlock": "send is Pending",
+        "recvBlock": "recv is Pending",
+        "wake": "woken"
+      },
+      "gloss": {
+        "marble": [
+          "a task",
+          "a future spawned onto the runtime, a state machine on the heap that runs by being polled. It is light."
+        ],
+        "lane": [
+          "a worker thread",
+          "tokio's multi-thread runtime starts one per core by default. Two are drawn here."
+        ],
+        "lift": [
+          "the tokio runtime",
+          "its scheduler polls tasks on worker threads."
+        ],
+        "claw": [
+          "no claw",
+          "tokio never interrupts a poll. Here it does not need to, because the channel is what takes the producer off its worker."
+        ],
+        "box": [
+          "mpsc::channel(1)",
+          "a bounded channel with room for one value, many senders and one receiver. The bound is chosen at the call: channel(1) here, unbounded_channel for none."
+        ],
+        "send": [
+          "send().await",
+          "send returns Ready as soon as there is room, and the value moves into the channel. The sender gives up ownership of it."
+        ],
+        "recv": [
+          "recv().await",
+          "recv hands over the oldest value if there is one, and returns None once every sender has been dropped."
+        ],
+        "full": [
+          "send is Pending",
+          "the channel is full, so the send future returns Poll::Pending and leaves a waker behind. The task yields its worker and holds its value until it is polled again."
+        ],
+        "empty": [
+          "recv is Pending",
+          "the channel is empty, so the recv future returns Poll::Pending and leaves a waker behind."
+        ],
+        "wake": [
+          "woken",
+          "the other end moved and fired the waker: the receiver took a value, or the sender put one in. The task is queued for a worker to poll it again."
+        ],
+        "run": [
+          "polled",
+          "a worker thread is polling this task's future."
+        ],
+        "gate": [
+          "no gate",
+          "a worker thread is a slot, not a lock."
+        ],
+        "done": [
+          "completes",
+          "the future returned Poll::Ready with its value."
+        ],
+        "token": [
+          "no lock",
+          "a worker thread is a slot, not a lock. Two tasks run at the same instant."
+        ],
+        "crossing": [
+          "by move",
+          "ownership moves from the sender to the receiver inside one address space. Nothing is serialised, and the receiver gets the value the sender built."
+        ]
+      }
+    }
+  },
+  "expected": {
+    "one-lane": [
+      "slot ramp",
+      "slot ramp",
+      "box slot",
+      "ramp slot",
+      "ramp slot",
+      "ramp slot",
+      "ramp slot",
+      "ramp slot",
+      "ramp slot",
+      "slot box",
+      "slot ramp",
+      "tray slot",
+      "tray slot",
+      "tray slot",
+      "ramp ramp"
+    ],
+    "one-lane-big": [
+      "slot ramp",
+      "slot ramp",
+      "slot ramp",
+      "slot ramp",
+      "tray slot",
+      "tray slot",
+      "tray slot",
+      "tray slot",
+      "tray slot",
+      "tray slot",
+      "tray slot",
+      "tray slot",
+      "tray slot",
+      "tray slot",
+      "ramp ramp"
+    ],
+    "padlock": [
+      "slot gate",
+      "slot gate",
+      "box slot",
+      "gate slot",
+      "slot gate",
+      "box slot",
+      "box slot",
+      "gate slot",
+      "slot gate",
+      "tray slot",
+      "tray slot",
+      "tray slot",
+      "tray slot",
+      "tray slot",
+      "ramp ramp"
+    ],
+    "no-claw": [
+      "slot slot",
+      "slot slot",
+      "slot slot",
+      "box slot",
+      "slot slot",
+      "tray slot",
+      "tray slot",
+      "tray slot",
+      "tray slot",
+      "tray slot",
+      "ramp ramp"
+    ],
+    "claw": [
+      "slot slot",
+      "slot slot",
+      "slot slot",
+      "box slot",
+      "slot slot",
+      "tray slot",
+      "tray slot",
+      "tray slot",
+      "tray slot",
+      "tray slot",
+      "ramp ramp"
+    ],
+    "rendezvous": [
+      "slot slot",
+      "slot slot",
+      "box slot",
+      "box slot",
+      "slot slot",
+      "box slot",
+      "box slot",
+      "slot slot",
+      "tray slot",
+      "tray slot",
+      "ramp ramp"
+    ]
+  }
+}
