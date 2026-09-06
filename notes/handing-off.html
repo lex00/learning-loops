@@ -1,0 +1,373 @@
+<title>Handing off</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --ground: #F3F5F7; --ink: #172033; --muted: #64708A; --rule: #D3D9E2; --track: #B8C1CF;
+    --lit: #0F7B6C; --lit-soft: #D6EDE8; --stall: #B4472F; --stall-soft: #F3DDD6; --marble: #2B4C8C; --code-bg: #E8ECF1;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #12171F; --ink: #E6EAF0; --muted: #93A0B4; --rule: #2C3543; --track: #3A4557;
+      --lit: #3FBFA8; --lit-soft: #16332F; --stall: #E07A5F; --stall-soft: #3A241D; --marble: #7FA3E8; --code-bg: #1C2330;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #12171F; --ink: #E6EAF0; --muted: #93A0B4; --rule: #2C3543; --track: #3A4557;
+    --lit: #3FBFA8; --lit-soft: #16332F; --stall: #E07A5F; --stall-soft: #3A241D; --marble: #7FA3E8; --code-bg: #1C2330;
+  }
+  body { background: var(--ground); color: var(--ink); font-family: "Source Serif 4", Georgia, serif; font-size: 17px; line-height: 1.6; }
+  main { max-width: 72ch; margin: 0 auto; padding: 56px 24px 96px; display: flex; flex-direction: column; gap: 44px; }
+  h1, h2, h3 { font-family: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif; text-wrap: balance; line-height: 1.15; margin: 0; }
+  h1 { font-size: 40px; font-weight: 700; letter-spacing: -0.01em; }
+  h2 { font-size: 24px; font-weight: 600; padding-top: 20px; border-top: 1px solid var(--rule); }
+  h3 { font-size: 16px; font-weight: 600; }
+  p { margin: 0; }
+  .eyebrow { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  header { display: flex; flex-direction: column; gap: 14px; }
+  header p.lede { font-size: 19px; line-height: 1.45; max-width: 58ch; }
+  section { display: flex; flex-direction: column; gap: 16px; }
+  .word { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 0.9em; background: var(--code-bg); padding: 1px 6px; border-radius: 3px; white-space: nowrap; }
+  figure { margin: 0; display: flex; flex-direction: column; gap: 10px; }
+  figure svg { width: 100%; height: auto; display: block; }
+  figcaption { font-size: 14px; color: var(--muted); font-style: italic; }
+  .legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 6px 20px; font-size: 15px; }
+  .legend span:first-child { font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; }
+  .tablewrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 14.5px; font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; padding: 8px 12px 8px 0; vertical-align: top; border-bottom: 1px solid var(--rule); }
+  th { font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; font-size: 13.5px; color: var(--muted); }
+  td:first-child { font-weight: 600; white-space: nowrap; }
+  td i { color: var(--stall); font-style: normal; font-family: "IBM Plex Mono", Menlo, monospace; font-size: 12px; white-space: nowrap; }
+  tr.key td { background: var(--lit-soft); }
+  tr.key td:first-child { border-left: 3px solid var(--lit); padding-left: 8px; }
+  .variants { min-width: 760px; }
+  .beats { min-width: 600px; }
+  ul, ol { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; font-size: 15.5px; }
+  li::marker { color: var(--muted); }
+  .lesson { border-left: 3px solid var(--lit); padding-left: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .lesson b { font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 600px) { .pair { grid-template-columns: 1fr; } }
+  .pair > div { display: flex; flex-direction: column; gap: 6px; }
+  footer { font-size: 14px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 16px; }
+</style>
+
+<main>
+  <header>
+    <p class="eyebrow">Scene design &middot; 2026-09-06 &middot; concurrency, scene four</p>
+    <h1>Handing off</h1>
+    <p class="lede">One marble makes values and one uses them, and between them sits a box with a size. A send into a full box waits. A receive from an empty box waits. The marble that waits leaves its lane holding whatever it holds, and comes back through the ramp when the other end moves. Two marbles, six runtimes, five schedules, and two new parts on the track.</p>
+  </header>
+
+  <section>
+    <h2>The lesson</h2>
+    <div class="lesson">
+      <p><b>Misconception it corrects.</b> "A queue makes them run at the same time, and sending is free." The box has a size, and both ends stall on it. A producer that gets ahead stops at a full box. A consumer that gets ahead stops at an empty one. The marble that stops gives up its lane and pays for the trip back through the ramp, exactly as a preempted marble does.</p>
+      <p><b>What should be burned in after staring.</b> Under one lane the producer and consumer never move together, however big the box is: fifteen ticks with room for one value, fifteen with room for three. The work is the same fourteen ticks either way and only one marble moves at a time, so the extra room buys nothing. Two lanes bring the cycle down to eleven, which is what the consumer costs on its own. The box does not add speed. It decides who waits.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>The track</h2>
+    <figure>
+      <svg viewBox="0 0 720 340" role="img" aria-label="Track layout: the Truly parallel track, two lanes with a gate and a claw, with an open-topped box under the lanes and two pockets beside it. A send drops a value into the box and a receive lifts one out. A marble the box stops leaves its lane for a pocket and comes back down a chute to the ramp.">
+        <defs>
+          <style>
+            .t { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 11px; fill: var(--muted); }
+            .tk { fill: var(--ink); }
+            .rail { stroke: var(--track); stroke-width: 3; fill: none; }
+            .rail-lit { stroke: var(--lit); stroke-width: 3; fill: none; }
+            .thin { stroke: var(--track); stroke-width: 1.5; fill: none; }
+            .ink { stroke: var(--ink); stroke-width: 1.5; fill: none; }
+            .dash { stroke-dasharray: 5 4; }
+            .stall { stroke: var(--stall); stroke-width: 3; fill: none; }
+          </style>
+        </defs>
+
+        <!-- lift shaft -->
+        <rect x="150" y="44" width="22" height="246" rx="4" class="thin"/>
+        <path d="M161 282 V56" class="thin dash"/>
+        <path d="M155 64 L161 54 L167 64" class="thin"/>
+        <text x="161" y="308" text-anchor="middle" class="t">scheduler</text>
+        <text x="161" y="322" text-anchor="middle" class="t">(the lift)</text>
+
+        <!-- claw rail and claw, parked -->
+        <path d="M180 14 H480" class="thin dash"/>
+        <path d="M470 14 V30" class="thin"/>
+        <path d="M462 30 H478 M462 30 V40 M478 30 V40" class="thin"/>
+        <text x="490" y="24" class="t tk">claw</text>
+        <text x="490" y="38" class="t">(the scheduler's timer)</text>
+
+        <!-- lanes, gate at the start of lane two -->
+        <path d="M172 62 H450" class="rail-lit"/>
+        <path d="M204 50 V74" class="stall"/>
+        <text x="204" y="44" text-anchor="middle" class="t tk">gate</text>
+        <path d="M172 90 H450" class="rail-lit"/>
+        <text x="366" y="32" text-anchor="middle" class="t tk">running</text>
+        <text x="366" y="46" text-anchor="middle" class="t">(two lanes are two cores)</text>
+
+        <!-- the box: an open-topped bin under the lanes, one cell -->
+        <path d="M232 118 V172 H280 V118" class="rail"/>
+        <rect x="240" y="134" width="32" height="30" rx="2" class="thin dash"/>
+        <text x="256" y="188" text-anchor="middle" class="t tk">the box</text>
+        <text x="250" y="202" text-anchor="middle" class="t">(room for one value)</text>
+
+        <!-- a send drops down into the box, a receive lifts up out of it -->
+        <path d="M242 96 V114" class="thin dash"/>
+        <path d="M236 106 L242 116 L248 106" class="thin"/>
+        <text x="228" y="112" text-anchor="end" class="t">send</text>
+        <path d="M270 114 V70" class="thin dash"/>
+        <path d="M264 78 L270 68 L276 78" class="thin"/>
+        <text x="284" y="76" class="t">recv</text>
+
+        <!-- two pockets, for whoever the box stops -->
+        <path d="M312 130 v28 a14 14 0 0 0 28 0 v-28" class="rail"/>
+        <path d="M356 130 v28 a14 14 0 0 0 28 0 v-28" class="rail"/>
+        <text x="360" y="196" text-anchor="middle" class="t tk">blocked</text>
+        <text x="360" y="210" text-anchor="middle" class="t">(on the box)</text>
+
+        <!-- pocket exits down to the chute, and the chute to the ramp -->
+        <path d="M326 172 V236" class="thin"/>
+        <path d="M370 172 V236" class="thin"/>
+        <path d="M300 236 H400" class="thin"/>
+        <path d="M300 236 L290 250 L280 262" class="thin"/>
+        <text x="410" y="240" class="t">to the ramp</text>
+
+        <!-- done tray -->
+        <path d="M450 90 C480 90 500 110 500 140 V180" class="rail"/>
+        <path d="M486 182 h28 v14 h-28 z" class="rail"/>
+        <text x="540" y="192" class="t tk">done</text>
+        <path d="M500 196 V262" class="thin dash"/>
+        <text x="540" y="240" class="t">(tray tips, two</text>
+        <text x="540" y="254" class="t">new marbles created)</text>
+
+        <!-- runnable ramp along bottom, right to left into the lift -->
+        <path d="M520 262 H172" class="rail"/>
+        <path d="M184 256 L174 262 L184 268" class="thin"/>
+        <text x="346" y="290" text-anchor="middle" class="t tk">runnable</text>
+        <text x="346" y="304" text-anchor="middle" class="t">(ramp, first in first out)</text>
+        <text x="600" y="266" class="t">created</text>
+
+        <!-- the moment: tokio at the end of tick four -->
+        <circle cx="256" cy="150" r="4" fill="var(--ink)"/>
+        <path d="M326 98 V132" class="thin dash"/>
+        <path d="M320 122 L326 132 L332 122" class="thin"/>
+        <circle cx="326" cy="110" r="8" fill="var(--marble)"/>
+        <circle cx="326" cy="110" r="1.6" fill="var(--ground)"/>
+        <circle cx="340" cy="104" r="4" fill="var(--ink)"/>
+        <text x="398" y="148" class="t">no room,</text>
+        <text x="398" y="162" class="t">so it drops</text>
+        <circle cx="252" cy="54" r="8" fill="var(--lit)"/>
+        <circle cx="248.5" cy="54" r="1.6" fill="var(--ground)"/><circle cx="255.5" cy="54" r="1.6" fill="var(--ground)"/>
+        <circle cx="266" cy="46" r="4" fill="var(--ink)"/>
+      </svg>
+      <figcaption>The Truly parallel track with two things added: a box under the lanes, and the pockets from Waiting on I/O, here for a marble the box stops rather than for a reply. Drawn in the Rust tokio variant at the end of tick four. The box holds the second value, two-dot is on lane 2 using the first one, and one-dot has made a third value it cannot send, so it leaves lane 1 for a pocket still holding it.</figcaption>
+    </figure>
+    <div class="legend">
+      <span>Box</span><span>the channel or queue; a send puts a value in, a receive takes the oldest one out, and the cell marks how much room there is</span>
+      <span>Pocket</span><span>where a marble goes when the box stops it, holding whatever it holds; it leaves by the chute the moment the other end acts</span>
+      <span>Value</span><span>the small dot; it appears beside the producer while it is made, sits in the box, then rides beside the consumer and fades over the ticks it is used</span>
+      <span>Shell and copy dot</span><span>multiprocessing only; a thin ring around each marble for its own memory, and a hollow dot that splits off at the send while the original stays behind and fades</span>
+      <span>Lanes, lift, ramp, gate, claw, tray</span><span>as in Yielding</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>The six variants</h2>
+    <p>Every row is a real property of the runtime, not a metaphor. The box is the same part everywhere: it has a size, it holds values in order, and it stops whichever end runs out of room or runs out of values. What differs is the name of the box, the words at each end, and whether the value crosses as itself or as a copy.</p>
+    <div class="tablewrap">
+      <table class="variants">
+        <thead><tr><th></th><th>Python threads</th><th>Python asyncio</th><th>Python free-threaded</th><th>Python multiprocessing</th><th>Go</th><th>Rust tokio</th></tr></thead>
+        <tbody>
+          <tr><td>The marble is a</td><td>thread</td><td>task</td><td>thread</td><td>process</td><td>goroutine</td><td>task</td></tr>
+          <tr><td>Lanes drawn</td><td>2</td><td>1</td><td>2</td><td>2</td><td>2</td><td>2</td></tr>
+          <tr><td>Marbles that move at once</td><td>1</td><td>1</td><td>2</td><td>2</td><td>2</td><td>2</td></tr>
+          <tr><td>The claw is</td><td>the switch interval, 5 ms</td><td>none</td><td>the OS time slice</td><td>the OS time slice</td><td>sysmon, after 10 ms</td><td>none</td></tr>
+          <tr><td>The box is</td><td><span class="word">queue.Queue(maxsize=1)</span></td><td><span class="word">asyncio.Queue(maxsize=1)</span></td><td><span class="word">queue.Queue(maxsize=1)</span></td><td><span class="word">multiprocessing.Queue(maxsize=1)</span></td><td><span class="word">make(chan T)</span>, unbuffered</td><td><span class="word">mpsc::channel(1)</span></td></tr>
+          <tr><td>Room in the box</td><td>one value</td><td>one value</td><td>one value</td><td>one value</td><td>none, hand to hand</td><td>one value</td></tr>
+          <tr><td>The value crosses</td><td>by reference</td><td>by reference</td><td>by reference</td><td>by copy</td><td>hand to hand</td><td>by move</td></tr>
+          <tr><td>Word at a send</td><td><span class="word">put</span></td><td><span class="word">await put</span></td><td><span class="word">put</span></td><td><span class="word">put, pickles</span></td><td><span class="word">ch &lt;- v</span></td><td><span class="word">send().await</span></td></tr>
+          <tr><td>Word at a receive</td><td><span class="word">get</span></td><td><span class="word">await get</span></td><td><span class="word">get</span></td><td><span class="word">get, unpickles</span></td><td><span class="word">&lt;-ch</span></td><td><span class="word">recv().await</span></td></tr>
+          <tr><td>When the box is full</td><td><span class="word">put blocks, drops the GIL</span></td><td><span class="word">await put suspends</span></td><td><span class="word">put blocks</span></td><td><span class="word">put blocks</span></td><td><span class="word">parks, no receiver</span></td><td><span class="word">send is Pending</span></td></tr>
+          <tr><td>When the box is empty</td><td><span class="word">get blocks, drops the GIL</span></td><td><span class="word">await get suspends</span></td><td><span class="word">get blocks</span></td><td><span class="word">get blocks</span></td><td><span class="word">parks, no sender</span></td><td><span class="word">recv is Pending</span></td></tr>
+          <tr><td>Ticks a cycle</td><td>15</td><td>15</td><td>11</td><td>11</td><td>11</td><td>11</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Six runtimes, five schedules, and a sixth schedule with no runtime on it. Threads and asyncio both take fifteen ticks, one with a padlock across two lanes and one with a single lane, which is the tie from Truly parallel showing up again. Free-threaded Python, multiprocessing, and tokio share an eleven-tick trace: two of them have a claw and one does not, and it makes no difference, because no marble here ever runs its quantum with someone waiting unless the padlock is on. Go takes eleven ticks with no box at all, and pays for it with a producer that spends four of them in a pocket. The sixth schedule is one lane with a box of three. No runtime uses it. It is in the manifest so the schedule panel can show it beside the box of one, at the same fifteen ticks.</p>
+  </section>
+
+  <section>
+    <h2>The skeleton and the beats</h2>
+    <p>The two marbles have different skeletons for the first time. The producer runs a tick, sends, and does that three times, then runs one last tick: four ticks of work. The consumer runs a tick, then receives a value and uses it for three ticks, three times: ten ticks of work. The single tick at each end is there so that no exchange ever lands on the beat where the lift raises a marble or the tray takes one.</p>
+    <p>The rules are Truly parallel's, with the box added. At a tick boundary the box is worked to a fixpoint in a fixed order: marbles already blocked in pockets before marbles that have just arrived, and receives before sends. A receive that makes room lets a blocked send in on the same beat, and with no box at all a send and a receive that meet at the same boundary pass the value hand to hand. So a marble stalls only when nothing at that boundary could serve it. A marble that does stall leaves its lane holding whatever it holds, drops into a pocket, and when the other end acts it comes back down the chute to the ramp and waits for the lift like anyone else.</p>
+    <p>In the tables the box column shows what the box holds at the end of the tick, and the pocket column shows which marble is stuck and why: <i>full</i> for a send that found no room, <i>empty</i> for a receive that found nothing, <i>no receiver</i> under Go, which has no box to find anything in. The first tick of every cycle is the lift raising the first marbles, so no work happens in it. The five tables were derived by the simulation, not written by hand.</p>
+
+    <h3>Python asyncio, one lane, a box of one</h3>
+    <div class="tablewrap">
+      <table class="beats">
+        <thead><tr><th>Tick</th><th>Lane 1</th><th>Lane 2</th><th>Box</th><th>Pocket</th><th>Ramp</th><th>Done</th><th>What just happened</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>&#9679;</td><td></td><td></td><td></td><td>&#9679;&#9679;</td><td></td><td>Lift raises one-dot. <span class="word">running</span>. Two-dot is on the ramp with no lane to go to.</td></tr>
+          <tr><td>2</td><td>&#9679;</td><td></td><td>v1</td><td></td><td>&#9679;&#9679;</td><td></td><td>One-dot makes its first value and <span class="word">await put</span> drops it in. The box had room, so nothing suspends and one-dot starts making v2.</td></tr>
+          <tr class="key"><td>3</td><td>&#9679;&#9679;</td><td></td><td>v1</td><td>&#9679; <i>full</i></td><td></td><td></td><td>One-dot's second <span class="word">await put</span> finds the box full. It suspends holding v2 and drops into a pocket. The lift raises two-dot, which has never run. This is the beat to stare at.</td></tr>
+          <tr><td>4</td><td>&#9679;&#9679;</td><td></td><td>v2</td><td></td><td>&#9679;</td><td></td><td>Two-dot's <span class="word">await get</span> takes v1 out. That makes room, so one-dot's send is served at the same boundary: v2 goes in, one-dot is <span class="word">ready</span> and comes back to the ramp, already making v3.</td></tr>
+          <tr><td>5</td><td>&#9679;&#9679;</td><td></td><td>v2</td><td></td><td>&#9679;</td><td></td><td>Two-dot uses v1. One-dot is runnable and there is no lane for it.</td></tr>
+          <tr><td>6</td><td>&#9679;&#9679;</td><td></td><td>v2</td><td></td><td>&#9679;</td><td></td><td>Still two-dot.</td></tr>
+          <tr><td>7</td><td>&#9679;&#9679;</td><td></td><td></td><td></td><td>&#9679;</td><td></td><td>Two-dot finishes with v1 and its <span class="word">await get</span> takes v2. The box is empty again.</td></tr>
+          <tr><td>8</td><td>&#9679;&#9679;</td><td></td><td></td><td></td><td>&#9679;</td><td></td><td>Two-dot uses v2.</td></tr>
+          <tr><td>9</td><td>&#9679;&#9679;</td><td></td><td></td><td></td><td>&#9679;</td><td></td><td>Still two-dot. One-dot has now sat on the ramp for six ticks with a value ready to send.</td></tr>
+          <tr><td>10</td><td>&#9679;</td><td></td><td></td><td>&#9679;&#9679; <i>empty</i></td><td></td><td></td><td>Two-dot's <span class="word">await get</span> finds the box empty. It suspends with nothing in hand and drops into a pocket. The lift raises one-dot at last.</td></tr>
+          <tr><td>11</td><td>&#9679;</td><td></td><td></td><td></td><td>&#9679;&#9679;</td><td></td><td>One-dot's third <span class="word">await put</span> is served, and two-dot was already at the box, so the receive is served in the same boundary: v3 never rests in the box. Two-dot wakes to the ramp holding it. One-dot has one tick of its own work left.</td></tr>
+          <tr><td>12</td><td>&#9679;&#9679;</td><td></td><td></td><td></td><td></td><td>&#9679;</td><td>One-dot <span class="word">done</span>. The lift raises two-dot for its last three ticks.</td></tr>
+          <tr><td>13</td><td>&#9679;&#9679;</td><td></td><td></td><td></td><td></td><td>&#9679;</td><td>Two-dot uses v3.</td></tr>
+          <tr><td>14</td><td>&#9679;&#9679;</td><td></td><td></td><td></td><td></td><td>&#9679;</td><td>Still two-dot.</td></tr>
+          <tr><td>15</td><td></td><td></td><td></td><td></td><td>&#9679; &#9679;&#9679;</td><td></td><td>Two-dot <span class="word">done</span>. The tray tips. Two marbles are created. Loop.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>One lane, a box of three</h3>
+    <div class="tablewrap">
+      <table class="beats">
+        <thead><tr><th>Tick</th><th>Lane 1</th><th>Lane 2</th><th>Box</th><th>Pocket</th><th>Ramp</th><th>Done</th><th>What just happened</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>&#9679;</td><td></td><td></td><td></td><td>&#9679;&#9679;</td><td></td><td>Lift raises one-dot. Same start as asyncio, and the box now has three cells.</td></tr>
+          <tr><td>2</td><td>&#9679;</td><td></td><td>v1</td><td></td><td>&#9679;&#9679;</td><td></td><td>The first send goes in. Two cells are still free.</td></tr>
+          <tr><td>3</td><td>&#9679;</td><td></td><td>v1 v2</td><td></td><td>&#9679;&#9679;</td><td></td><td>The second send goes in. One cell left.</td></tr>
+          <tr><td>4</td><td>&#9679;</td><td></td><td>v1 v2 v3</td><td></td><td>&#9679;&#9679;</td><td></td><td>The third send fills the box. One-dot has no fourth send, so a full box never stops it. One tick of its own work is left.</td></tr>
+          <tr class="key"><td>5</td><td>&#9679;&#9679;</td><td></td><td>v1 v2 v3</td><td></td><td></td><td>&#9679;</td><td>One-dot is <span class="word">done</span> at tick five, four ticks of work and not one stall. The lift raises two-dot, whose ten ticks are all still ahead of it. The room bought nothing. This is the beat to stare at.</td></tr>
+          <tr><td>6</td><td>&#9679;&#9679;</td><td></td><td>v2 v3</td><td></td><td></td><td>&#9679;</td><td>Two-dot's first receive takes v1 off the front of the box.</td></tr>
+          <tr><td>7</td><td>&#9679;&#9679;</td><td></td><td>v2 v3</td><td></td><td></td><td>&#9679;</td><td>Two-dot uses v1.</td></tr>
+          <tr><td>8</td><td>&#9679;&#9679;</td><td></td><td>v2 v3</td><td></td><td></td><td>&#9679;</td><td>Still two-dot.</td></tr>
+          <tr><td>9</td><td>&#9679;&#9679;</td><td></td><td>v3</td><td></td><td></td><td>&#9679;</td><td>The second receive takes v2.</td></tr>
+          <tr><td>10</td><td>&#9679;&#9679;</td><td></td><td>v3</td><td></td><td></td><td>&#9679;</td><td>Two-dot uses v2.</td></tr>
+          <tr><td>11</td><td>&#9679;&#9679;</td><td></td><td>v3</td><td></td><td></td><td>&#9679;</td><td>Still two-dot.</td></tr>
+          <tr><td>12</td><td>&#9679;&#9679;</td><td></td><td></td><td></td><td></td><td>&#9679;</td><td>The third receive takes v3 and the box is empty.</td></tr>
+          <tr><td>13</td><td>&#9679;&#9679;</td><td></td><td></td><td></td><td></td><td>&#9679;</td><td>Two-dot uses v3.</td></tr>
+          <tr><td>14</td><td>&#9679;&#9679;</td><td></td><td></td><td></td><td></td><td>&#9679;</td><td>Still two-dot.</td></tr>
+          <tr><td>15</td><td></td><td></td><td></td><td></td><td>&#9679; &#9679;&#9679;</td><td></td><td>Two-dot <span class="word">done</span>. Fifteen ticks, the same as the box of one. The tray tips. Loop.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Python threads, two lanes and a padlock</h3>
+    <div class="tablewrap">
+      <table class="beats">
+        <thead><tr><th>Tick</th><th>Lane 1</th><th>Lane 2</th><th>Box</th><th>Pocket</th><th>Ramp</th><th>Done</th><th>What just happened</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>&#9679;</td><td>&#9679;&#9679; <i>gate</i></td><td></td><td></td><td></td><td></td><td>Lift raises one-dot to lane 1 and two-dot to lane 2. One-dot takes the GIL. Two-dot is on a core and cannot move: <span class="word">waiting for the GIL</span>. The ramp is empty and stays empty all cycle.</td></tr>
+          <tr><td>2</td><td>&#9679;</td><td>&#9679;&#9679; <i>gate</i></td><td>v1</td><td></td><td></td><td></td><td>One-dot's <span class="word">put</span> finds room, so it keeps the GIL and starts making v2.</td></tr>
+          <tr><td>3</td><td></td><td>&#9679;&#9679;</td><td>v1</td><td>&#9679; <i>full</i></td><td></td><td></td><td>One-dot's second <span class="word">put</span> finds the box full. It blocks, drops the GIL, and leaves lane 1 for a pocket holding v2. Two-dot takes the GIL and moves for the first time.</td></tr>
+          <tr><td>4</td><td>&#9679; <i>gate</i></td><td>&#9679;&#9679;</td><td>v2</td><td></td><td></td><td></td><td>Two-dot's <span class="word">get</span> takes v1, which makes room, so one-dot's put is served in the same boundary. One-dot is <span class="word">runnable</span>, comes down the chute to the ramp, and the lift puts it straight back on lane 1, where it stands at the gate.</td></tr>
+          <tr class="key"><td>5</td><td>&#9679;</td><td>&#9679;&#9679; <i>gate</i></td><td>v2</td><td></td><td></td><td></td><td>The switch interval fires. One-dot is standing at the gate, which counts as waiting, so the claw pulls two-dot off lane 2 and the lift puts it back at the gate. One-dot takes the GIL. This is the beat to stare at.</td></tr>
+          <tr><td>6</td><td></td><td>&#9679;&#9679;</td><td>v2</td><td>&#9679; <i>full</i></td><td></td><td></td><td>One-dot spends the GIL making v3, then its <span class="word">put</span> finds the box still full. It blocks and goes back to a pocket, and two-dot takes the GIL back. The handover at tick five bought one tick of producing and nothing else.</td></tr>
+          <tr><td>7</td><td></td><td>&#9679;&#9679;</td><td>v2</td><td>&#9679; <i>full</i></td><td></td><td></td><td>Two-dot uses v1. Lane 1 is empty and the only other marble is in a pocket.</td></tr>
+          <tr><td>8</td><td>&#9679; <i>gate</i></td><td>&#9679;&#9679;</td><td>v3</td><td></td><td></td><td></td><td>Two-dot finishes with v1 and its <span class="word">get</span> takes v2. One-dot's put of v3 is served behind it, and one-dot comes back to lane 1, at the gate again.</td></tr>
+          <tr><td>9</td><td>&#9679;</td><td>&#9679;&#9679; <i>gate</i></td><td>v3</td><td></td><td></td><td></td><td>The switch interval fires again, the same way: two-dot goes back to the gate and one-dot takes the GIL, with one tick of its own work left.</td></tr>
+          <tr><td>10</td><td></td><td>&#9679;&#9679;</td><td>v3</td><td></td><td></td><td>&#9679;</td><td>One-dot <span class="word">exits</span>. Two-dot takes the GIL back and lane 1 has nobody to fill it.</td></tr>
+          <tr><td>11</td><td></td><td>&#9679;&#9679;</td><td>v3</td><td></td><td></td><td>&#9679;</td><td>Two-dot uses v2.</td></tr>
+          <tr><td>12</td><td></td><td>&#9679;&#9679;</td><td></td><td></td><td></td><td>&#9679;</td><td>Two-dot's last <span class="word">get</span> takes v3. Nothing will go into the box again.</td></tr>
+          <tr><td>13</td><td></td><td>&#9679;&#9679;</td><td></td><td></td><td></td><td>&#9679;</td><td>Two-dot uses v3, alone on two lanes.</td></tr>
+          <tr><td>14</td><td></td><td>&#9679;&#9679;</td><td></td><td></td><td></td><td>&#9679;</td><td>Still two-dot.</td></tr>
+          <tr><td>15</td><td></td><td></td><td></td><td></td><td>&#9679; &#9679;&#9679;</td><td></td><td>Two-dot <span class="word">exits</span>. Fifteen ticks, the same as one lane. The tray tips. Loop.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Two lanes, a box of one: Rust tokio, Python free-threaded, Python multiprocessing</h3>
+    <div class="tablewrap">
+      <table class="beats">
+        <thead><tr><th>Tick</th><th>Lane 1</th><th>Lane 2</th><th>Box</th><th>Pocket</th><th>Ramp</th><th>Done</th><th>What just happened</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>&#9679;</td><td>&#9679;&#9679;</td><td></td><td></td><td></td><td></td><td>Lift raises one-dot to lane 1 and two-dot to lane 2. Both move. One-dot makes v1 and two-dot does its own first tick.</td></tr>
+          <tr><td>2</td><td>&#9679;</td><td>&#9679;&#9679;</td><td></td><td></td><td></td><td></td><td>Both arrive at the box in the same boundary. The receive goes first and finds nothing, then the send puts v1 in, and the fixpoint serves the receive from the box: v1 goes in and comes out in one tick. Two-dot starts using it.</td></tr>
+          <tr><td>3</td><td>&#9679;</td><td>&#9679;&#9679;</td><td>v2</td><td></td><td></td><td></td><td>One-dot makes v2 and sends it. The box is empty, so it takes it. Two-dot is on its second tick with v1 and will not look at the box for another tick.</td></tr>
+          <tr class="key"><td>4</td><td></td><td>&#9679;&#9679;</td><td>v2</td><td>&#9679; <i>full</i></td><td></td><td></td><td>One-dot makes v3 and its send finds v2 still sitting there. It leaves lane 1 for a pocket holding v3. Lane 1 is now empty with nobody on the ramp to fill it: a whole core idle because the box is one deep. This is the beat to stare at.</td></tr>
+          <tr><td>5</td><td>&#9679;</td><td>&#9679;&#9679;</td><td>v3</td><td></td><td></td><td></td><td>Two-dot's receive takes v2 and one-dot's send is served behind it, so v3 goes in. One-dot wakes, down the chute to the ramp, and the lift puts it straight back on lane 1 with one tick of its own work left.</td></tr>
+          <tr><td>6</td><td></td><td>&#9679;&#9679;</td><td>v3</td><td></td><td></td><td>&#9679;</td><td>One-dot is done: four ticks of work spread over six ticks, one of them in a pocket. Two-dot has five ticks left.</td></tr>
+          <tr><td>7</td><td></td><td>&#9679;&#9679;</td><td>v3</td><td></td><td></td><td>&#9679;</td><td>Two-dot uses v2.</td></tr>
+          <tr><td>8</td><td></td><td>&#9679;&#9679;</td><td></td><td></td><td></td><td>&#9679;</td><td>Two-dot's last receive takes v3 out and the box is empty for good.</td></tr>
+          <tr><td>9</td><td></td><td>&#9679;&#9679;</td><td></td><td></td><td></td><td>&#9679;</td><td>Two-dot uses v3.</td></tr>
+          <tr><td>10</td><td></td><td>&#9679;&#9679;</td><td></td><td></td><td></td><td>&#9679;</td><td>Still two-dot.</td></tr>
+          <tr><td>11</td><td></td><td></td><td></td><td></td><td>&#9679; &#9679;&#9679;</td><td></td><td>Two-dot is done. The tray tips. Two marbles are created. Loop.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Go, two lanes and no box</h3>
+    <div class="tablewrap">
+      <table class="beats">
+        <thead><tr><th>Tick</th><th>Lane 1</th><th>Lane 2</th><th>Box</th><th>Pocket</th><th>Ramp</th><th>Done</th><th>What just happened</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>&#9679;</td><td>&#9679;&#9679;</td><td></td><td></td><td></td><td></td><td>Lift raises both, one to each P. The box column stays empty all cycle: an unbuffered channel has nowhere to put anything.</td></tr>
+          <tr><td>2</td><td>&#9679;</td><td>&#9679;&#9679;</td><td></td><td></td><td></td><td></td><td>One-dot's <span class="word">ch &lt;- v</span> and two-dot's <span class="word">&lt;-ch</span> meet at the same boundary, so v1 goes hand to hand and rests nowhere. Two-dot starts using it.</td></tr>
+          <tr class="key"><td>3</td><td></td><td>&#9679;&#9679;</td><td></td><td>&#9679; <i>no receiver</i></td><td></td><td></td><td>One-dot makes v2 and sends. Two-dot is two ticks from its next receive and there is no box to leave the value in, so one-dot parks in a pocket still holding v2. This is the beat to stare at.</td></tr>
+          <tr><td>4</td><td></td><td>&#9679;&#9679;</td><td></td><td>&#9679; <i>no receiver</i></td><td></td><td></td><td>Two-dot uses v1. One-dot is still parked with its hand out.</td></tr>
+          <tr><td>5</td><td>&#9679;</td><td>&#9679;&#9679;</td><td></td><td></td><td></td><td></td><td>Two-dot's receive comes round and takes v2 out of one-dot's hand. One-dot is <span class="word">runnable</span>, comes back through the chute and the ramp onto lane 1, and starts making v3.</td></tr>
+          <tr><td>6</td><td></td><td>&#9679;&#9679;</td><td></td><td>&#9679; <i>no receiver</i></td><td></td><td></td><td>The third send parks the same way, for the same two ticks.</td></tr>
+          <tr><td>7</td><td></td><td>&#9679;&#9679;</td><td></td><td>&#9679; <i>no receiver</i></td><td></td><td></td><td>Two-dot uses v2.</td></tr>
+          <tr><td>8</td><td>&#9679;</td><td>&#9679;&#9679;</td><td></td><td></td><td></td><td></td><td>The third value crosses hand to hand and one-dot comes back for its own last tick.</td></tr>
+          <tr><td>9</td><td></td><td>&#9679;&#9679;</td><td></td><td></td><td></td><td>&#9679;</td><td>One-dot <span class="word">returns</span>, having spent four of its nine ticks in a pocket.</td></tr>
+          <tr><td>10</td><td></td><td>&#9679;&#9679;</td><td></td><td></td><td></td><td>&#9679;</td><td>Two-dot uses v3.</td></tr>
+          <tr><td>11</td><td></td><td></td><td></td><td></td><td>&#9679; &#9679;&#9679;</td><td></td><td>Two-dot <span class="word">returns</span>. Eleven ticks, the same as a box of one. The tray tips. Loop.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Five things fall out of the derivation. One lane takes fifteen ticks whatever the box holds: one tick for the lift, then fourteen ticks of work done one at a time, four of producing and ten of consuming. Two lanes take eleven: one tick for the lift and then the consumer's ten, which is the slower side, with the producer's four fitted into the gaps. A box of one stalls somebody once when two marbles move at once, at tick four; when only one moves there are two stalls, the producer at tick three and the consumer at tick ten under asyncio, or the producer twice, at ticks three and six, under the padlock. Go's missing box stalls the producer at every send no receiver is already waiting for, which is two sends out of three and four ticks in a pocket. And the padlock's claw hands the GIL to the producer at ticks five and nine and the cycle stays at fifteen, which is what asyncio takes on one lane with no claw at all: the switch is visible in the trace and buys nothing.</p>
+  </section>
+
+  <section>
+    <h2>Morph rules</h2>
+    <p>The same as Yielding. Toggling a variant changes the rules and the scene continues from its current state. Values keep their places, and a marble in a pocket stays in it until the box lets it go.</p>
+    <ul>
+      <li>Threads to free-threaded. The padlock vanishes and the marble at the gate moves. The claw stays up either way.</li>
+      <li>Any two-lane variant to asyncio. Lane two goes dashed and its marble rolls back to the front of the ramp, keeping its mark.</li>
+      <li>Claw appears or vanishes. It changes nothing except under the padlock, where it is the only reason the GIL ever moves while the ramp is empty.</li>
+      <li>The box shrinks. It keeps what it already holds until that is taken. A box of three holding three values, toggled to a box of one, is over its size and simply drains, and no send is served until it has room again. Toggling to Go is the same rule with a size of none.</li>
+      <li>The box grows. A sender blocked in a pocket is let in at once, on the toggle, without waiting for a tick boundary.</li>
+      <li>To multiprocessing. Shells appear on both marbles. A value already in the box stays drawn as it is, because it crossed before the rules changed; only sends made after the toggle split off a copy dot.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Timing and rhythm</h2>
+    <div class="pair">
+      <div>
+        <h3>The stall</h3>
+        <p>The marble reaches the box at the end of its tick. If the box can serve it, the value dot flies during the movement window and the marble stays on its lane. If not, the marble drops into a pocket in the same window, holding what it holds. The pockets have no timers here. Nothing counts down, and only the other end can let a marble out.</p>
+      </div>
+      <div>
+        <h3>The cycle</h3>
+        <p>Fifteen ticks is twenty-one seconds at the normal speed, eleven is fifteen and a half. The two lengths are the lesson, so the schedule panel should show the fifteen of asyncio and the fifteen of threads side by side, and the box of three next to them at fifteen as well.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Deliberately left out</h2>
+    <ul>
+      <li>No closing of the channel and no sentinel value. Real producers say when they are finished, and the consumer's loop ends on that. Here the tray tipping is the end.</li>
+      <li>No cost for the copy itself. Pickling a value and pushing it through a pipe is real work and real latency under multiprocessing. The scene draws the shell and the hollow dot and charges nothing for them.</li>
+      <li>No second producer and no second consumer. Fan-in and fan-out change who wakes when the box moves, and that is a different scene.</li>
+      <li>No unbounded queue. A box with no size never stops a producer, which is the bug worth its own scene: memory grows until something falls over.</li>
+      <li>No select and no timeouts. Waiting on one of several boxes belongs with waiting on many at once.</li>
+      <li>No cancellation. A marble parked at a box that nobody will ever serve is a deadlock, and deadlocks belong after locks.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Calls made</h2>
+    <ul>
+      <li>Two marbles, not three. The scene is about one crossing between two ends, and a third marble would make the interesting question who gets the value rather than what the box does. It also means the tray tips after two, and the trace strip has two rows instead of three.</li>
+      <li>One tick of its own work at each end: the producer's last, the consumer's first. Without them an exchange would land on the same beat as the lift raising a marble or the tray taking one, and two events on one beat are two events nobody can read.</li>
+      <li>Receives before sends at a boundary, and marbles already in pockets before marbles that just arrived. Both orders exist so that a marble stalls only when nothing at that boundary could have served it. The visible result is a value that goes into the box and comes out again in the same tick, twice per cycle.</li>
+      <li>A marble standing at the gate counts as waiting for the claw. Truly parallel never needed the rule because three marbles kept the ramp full. Here there are two marbles and the ramp is empty for the whole padlock cycle, so without it the claw would never come down and the GIL would never move except when the box moved it.</li>
+      <li>The bigger box is a schedule with no runtime on it. It is the control: same skeletons, same one lane, three cells instead of one, and the same fifteen ticks. Naming it after a runtime would suggest some runtime is at fault for it.</li>
+      <li>The value is a dot that rides beside the marble rather than a mark on the marble. It has to be visibly separable, because the whole scene is about it leaving one marble and arriving at another.</li>
+      <li>The shell and the copy dot are drawn only for multiprocessing. Every other runtime here hands the same object across, and drawing a copy anywhere else would teach a thing that is not true.</li>
+    </ul>
+  </section>
+
+  <footer>Designed on paper on 2026-09-06. The two skeletons, the box rules, the boundary order, and the vocabulary are the contract; how the trace is computed can change.</footer>
+</main>
