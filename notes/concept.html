@@ -216,7 +216,7 @@
         <tbody>
           <tr><td>1</td><td>Waiting on I/O</td><td>blocks, OS switches</td><td>await</td><td>parks on a channel or call</td><td>returns Pending</td></tr>
           <tr><td>2</td><td>Truly parallel</td><td class="part">only during IO, gate otherwise</td><td class="no">no</td><td>yes</td><td>yes, one worker per core</td></tr>
-          <tr><td>3</td><td>Gets interrupted mid-run</td><td>yes</td><td class="no">no</td><td>yes</td><td class="no">no</td></tr>
+          <tr><td>3</td><td>Yielding</td><td>yes</td><td class="no">no</td><td>yes</td><td class="no">no</td></tr>
           <tr><td>4</td><td>Hands a value to another unit</td><td>Queue</td><td>asyncio.Queue</td><td>channel</td><td>mpsc channel</td></tr>
           <tr><td>5</td><td>Shares state behind a lock</td><td>Lock</td><td>rarely needed</td><td>Mutex</td><td>Mutex in an Arc</td></tr>
           <tr><td>6</td><td>Waits on many at once</td><td>join each</td><td>gather</td><td>WaitGroup or select</td><td>join! or select!</td></tr>
@@ -224,6 +224,7 @@
         </tbody>
       </table>
     </div>
+    <p>Row three was drawn first as the claw in Truly parallel, which is preemption: the scheduler taking a lane away. Yielding is the marble leaving its lane on purpose, with nothing to wait for, and the claw is the contrast it is toggled against.</p>
     <p>What varies between models is a short list, and each item can be a visual dimension rather than a sentence: how many things truly run at once becomes lanes; who owns scheduling becomes whether a visible runtime or the OS moves marbles; what causes a wait becomes where a marble stops; how units talk becomes a hand-to-hand pass or a shared box with a lock; and the cost of a unit becomes its weight, so a thread reads heavy and a goroutine reads light.</p>
   </section>
 

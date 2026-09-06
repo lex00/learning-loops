@@ -1,0 +1,277 @@
+<title>Yielding</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --ground: #F3F5F7; --ink: #172033; --muted: #64708A; --rule: #D3D9E2; --track: #B8C1CF;
+    --lit: #0F7B6C; --lit-soft: #D6EDE8; --stall: #B4472F; --stall-soft: #F3DDD6; --marble: #2B4C8C; --code-bg: #E8ECF1;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #12171F; --ink: #E6EAF0; --muted: #93A0B4; --rule: #2C3543; --track: #3A4557;
+      --lit: #3FBFA8; --lit-soft: #16332F; --stall: #E07A5F; --stall-soft: #3A241D; --marble: #7FA3E8; --code-bg: #1C2330;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #12171F; --ink: #E6EAF0; --muted: #93A0B4; --rule: #2C3543; --track: #3A4557;
+    --lit: #3FBFA8; --lit-soft: #16332F; --stall: #E07A5F; --stall-soft: #3A241D; --marble: #7FA3E8; --code-bg: #1C2330;
+  }
+  body { background: var(--ground); color: var(--ink); font-family: "Source Serif 4", Georgia, serif; font-size: 17px; line-height: 1.6; }
+  main { max-width: 72ch; margin: 0 auto; padding: 56px 24px 96px; display: flex; flex-direction: column; gap: 44px; }
+  h1, h2, h3 { font-family: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif; text-wrap: balance; line-height: 1.15; margin: 0; }
+  h1 { font-size: 40px; font-weight: 700; letter-spacing: -0.01em; }
+  h2 { font-size: 24px; font-weight: 600; padding-top: 20px; border-top: 1px solid var(--rule); }
+  h3 { font-size: 16px; font-weight: 600; }
+  p { margin: 0; }
+  .eyebrow { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  header { display: flex; flex-direction: column; gap: 14px; }
+  header p.lede { font-size: 19px; line-height: 1.45; max-width: 58ch; }
+  section { display: flex; flex-direction: column; gap: 16px; }
+  .word { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 0.9em; background: var(--code-bg); padding: 1px 6px; border-radius: 3px; white-space: nowrap; }
+  figure { margin: 0; display: flex; flex-direction: column; gap: 10px; }
+  figure svg { width: 100%; height: auto; display: block; }
+  figcaption { font-size: 14px; color: var(--muted); font-style: italic; }
+  .legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 6px 20px; font-size: 15px; }
+  .legend span:first-child { font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; }
+  .tablewrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 14.5px; font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; padding: 8px 12px 8px 0; vertical-align: top; border-bottom: 1px solid var(--rule); }
+  th { font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; font-size: 13.5px; color: var(--muted); }
+  td:first-child { font-weight: 600; white-space: nowrap; }
+  td i { color: var(--stall); font-style: normal; font-family: "IBM Plex Mono", Menlo, monospace; font-size: 12px; white-space: nowrap; }
+  tr.key td { background: var(--lit-soft); }
+  tr.key td:first-child { border-left: 3px solid var(--lit); padding-left: 8px; }
+  .variants { min-width: 760px; }
+  .beats { min-width: 600px; }
+  ul, ol { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; font-size: 15.5px; }
+  li::marker { color: var(--muted); }
+  .lesson { border-left: 3px solid var(--lit); padding-left: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .lesson b { font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 600px) { .pair { grid-template-columns: 1fr; } }
+  .pair > div { display: flex; flex-direction: column; gap: 6px; }
+  footer { font-size: 14px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 16px; }
+</style>
+
+<main>
+  <header>
+    <p class="eyebrow">Scene design &middot; 2026-09-05 &middot; concurrency, scene three</p>
+    <h1>Yielding</h1>
+    <p class="lede">A marble does one tick of work, then steps off its lane on purpose, with nothing to wait for, and goes to the back of the ramp. Later it comes back to finish. The same track as Truly parallel, the same six runtimes, and the same claw, which never comes down.</p>
+  </header>
+
+  <section>
+    <h2>The lesson</h2>
+    <div class="lesson">
+      <p><b>Misconception it corrects.</b> "Yielding is the same as waiting, and it is free." A marble that yields has nothing to wait for. It is runnable the moment it steps off, and it pays for the trip: it will not move again until the lift gets back to it. In the trace it shows as waiting for a lane, never as waiting on I/O.</p>
+      <p><b>What should be burned in after staring.</b> Under asyncio and tokio the yield is the only reason the other marbles ever run. Take it away and you are back in Truly parallel, where one-dot holds its lane for three ticks. Under threads, free-threaded Python, multiprocessing, and Go the claw would have taken the marble a tick later anyway, so the polite marble just goes early, and the claw never comes down.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>The track</h2>
+    <figure>
+      <svg viewBox="0 0 720 340" role="img" aria-label="Track layout: the Truly parallel track, two lanes with a gate and a claw, with a yield point a third of the way along each lane. A marble that reaches it drops straight down to the ramp and rolls to the back.">
+        <defs>
+          <style>
+            .t { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 11px; fill: var(--muted); }
+            .tk { fill: var(--ink); }
+            .rail { stroke: var(--track); stroke-width: 3; fill: none; }
+            .rail-lit { stroke: var(--lit); stroke-width: 3; fill: none; }
+            .thin { stroke: var(--track); stroke-width: 1.5; fill: none; }
+            .ink { stroke: var(--ink); stroke-width: 1.5; fill: none; }
+            .dash { stroke-dasharray: 5 4; }
+            .stall { stroke: var(--stall); stroke-width: 3; fill: none; }
+          </style>
+        </defs>
+
+        <!-- lift shaft -->
+        <rect x="150" y="44" width="22" height="246" rx="4" class="thin"/>
+        <path d="M161 282 V56" class="thin dash"/>
+        <path d="M155 64 L161 54 L167 64" class="thin"/>
+        <text x="161" y="308" text-anchor="middle" class="t">scheduler</text>
+        <text x="161" y="322" text-anchor="middle" class="t">(the lift)</text>
+
+        <!-- claw rail and claw, parked -->
+        <path d="M180 14 H480" class="thin dash"/>
+        <path d="M470 14 V30" class="thin"/>
+        <path d="M462 30 H478 M462 30 V40 M478 30 V40" class="thin"/>
+        <text x="490" y="24" class="t tk">claw</text>
+        <text x="490" y="38" class="t">(never comes down here)</text>
+
+        <!-- lanes, with the yield point a third of the way along -->
+        <path d="M172 62 H450" class="rail-lit"/>
+        <circle cx="265" cy="62" r="3" fill="var(--ink)"/>
+        <path d="M204 50 V74" class="stall"/>
+        <text x="204" y="44" text-anchor="middle" class="t tk">gate</text>
+        <path d="M172 90 H450" class="rail-lit"/>
+        <circle cx="265" cy="90" r="3" fill="var(--ink)"/>
+        <text x="265" y="38" text-anchor="middle" class="t tk">yield point</text>
+        <text x="360" y="118" text-anchor="middle" class="t tk">running</text>
+        <text x="360" y="132" text-anchor="middle" class="t">(two lanes are two cores)</text>
+
+        <!-- a marble stepping off at the yield point, straight down to the ramp -->
+        <path d="M265 100 V244" class="thin dash"/>
+        <path d="M259 236 L265 246 L271 236" class="thin"/>
+        <text x="280" y="180" class="t">steps off, to the</text>
+        <text x="280" y="194" class="t">back of the ramp</text>
+
+        <!-- done tray -->
+        <path d="M450 90 C480 90 500 110 500 140 V180" class="rail"/>
+        <path d="M486 182 h28 v14 h-28 z" class="rail"/>
+        <text x="540" y="192" class="t tk">done</text>
+        <path d="M500 196 V262" class="thin dash"/>
+        <text x="540" y="240" class="t">(tray tips, three</text>
+        <text x="540" y="254" class="t">new marbles created)</text>
+
+        <!-- runnable ramp along bottom, right to left into the lift -->
+        <path d="M520 262 H172" class="rail"/>
+        <path d="M184 256 L174 262 L184 268" class="thin"/>
+        <text x="346" y="290" text-anchor="middle" class="t tk">runnable</text>
+        <text x="346" y="304" text-anchor="middle" class="t">(ramp, first in first out)</text>
+        <text x="600" y="266" class="t">created</text>
+
+        <!-- marbles: one-dot at the yield point about to step off, two-dot at the gate, three-dot on the ramp -->
+        <circle cx="265" cy="82" r="8" fill="var(--lit)"/>
+        <circle cx="265" cy="82" r="1.6" fill="var(--ground)"/>
+        <circle cx="192" cy="54" r="8" fill="var(--marble)"/>
+        <circle cx="188.5" cy="54" r="1.6" fill="var(--ground)"/><circle cx="195.5" cy="54" r="1.6" fill="var(--ground)"/>
+        <circle cx="200" cy="254" r="8" fill="var(--marble)"/>
+        <circle cx="195" cy="254" r="1.6" fill="var(--ground)"/><circle cx="200" cy="254" r="1.6" fill="var(--ground)"/><circle cx="205" cy="254" r="1.6" fill="var(--ground)"/>
+      </svg>
+      <figcaption>The Truly parallel track with one thing added: a yield point a third of the way along each lane. Drawn here in the Python threads variant at the end of tick one: one-dot has reached the yield point and is about to step off, two-dot stands at the gate, three-dot waits on the ramp.</figcaption>
+    </figure>
+    <div class="legend">
+      <span>Yield point</span><span>the dot a third of the way along each lane; every marble steps off here, once, with nothing to wait for</span>
+      <span>Ramp</span><span>runnable, in arrival order; a marble that yields rejoins at the back, exactly as a preempted one does</span>
+      <span>Lift</span><span>the scheduler; raises the front marble when a lane is free, back to the mark its work had reached</span>
+      <span>Lanes, padlock, gate, claw, tray</span><span>as in Truly parallel</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>The six variants</h2>
+    <p>Every row is a real property of the runtime, not a metaphor. The yield is the same act everywhere: the running marble leaves its lane with nothing to wait for. What differs is the word for it, and whether anything else would have made the marble leave.</p>
+    <div class="tablewrap">
+      <table class="variants">
+        <thead><tr><th></th><th>Python threads</th><th>Python asyncio</th><th>Python free-threaded</th><th>Python multiprocessing</th><th>Go</th><th>Rust tokio</th></tr></thead>
+        <tbody>
+          <tr><td>The marble is a</td><td>thread</td><td>task</td><td>thread</td><td>process</td><td>goroutine</td><td>task</td></tr>
+          <tr><td>Lanes drawn</td><td>2</td><td>1</td><td>2</td><td>2</td><td>2</td><td>2</td></tr>
+          <tr><td>Marbles that move at once</td><td>1</td><td>1</td><td>2</td><td>2</td><td>2</td><td>2</td></tr>
+          <tr><td>The claw is</td><td>the switch interval</td><td>none</td><td>the OS time slice</td><td>the OS time slice</td><td>sysmon</td><td>none</td></tr>
+          <tr><td>Word at the yield</td><td><span class="word">sleep(0)</span>, drops the GIL</td><td><span class="word">await sleep(0)</span></td><td><span class="word">sleep(0)</span></td><td><span class="word">sleep(0)</span></td><td><span class="word">Gosched</span></td><td><span class="word">yield_now</span></td></tr>
+          <tr><td>Where the marble goes</td><td>back of the ramp</td><td>back of the ramp</td><td>back of the ramp</td><td>back of the ramp</td><td>back of the ramp</td><td>back of the ramp</td></tr>
+          <tr><td>Without the yield</td><td>the claw takes it a tick later</td><td>it holds the loop to the end</td><td>the claw takes it a tick later</td><td>the claw takes it a tick later</td><td>the claw takes it a tick later</td><td>it holds the worker to the end</td></tr>
+          <tr><td>Ticks a cycle</td><td>10</td><td>10</td><td>6</td><td>6</td><td>6</td><td>6</td></tr>
+          <tr><td>Ticks a cycle in Truly parallel</td><td>10</td><td>10</td><td>6</td><td>6</td><td>6</td><td>7</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Six runtimes, three schedules. The padlock schedule and the one-lane schedule are the same length as in Truly parallel, but every marble gets its first turn by tick three instead of queueing behind a marble that runs to the end. Two lanes take six ticks with or without a claw, because no marble ever runs long enough for the claw to fire. The claw hangs over the platform for the whole cycle and never comes down. Tokio is the one runtime whose cycle gets shorter: the yield puts the third task on a worker at tick two, so the straggler from Truly parallel is gone.</p>
+  </section>
+
+  <section>
+    <h2>The skeleton and the beats</h2>
+    <p>Each marble has the same authored skeleton: run one tick, yield, run two ticks. The rules are Truly parallel's, unchanged: lanes, marbles that may move at once, and a claw with a quantum of two ticks. The yield is the only new thing. When a marble's first segment ends, it steps off its lane and joins the back of the ramp, runnable, with its second segment still to do. The tables were derived by the same twenty-line simulation.</p>
+
+    <h3>Python asyncio, one lane</h3>
+    <div class="tablewrap">
+      <table class="beats">
+        <thead><tr><th>Tick</th><th>Lane 1</th><th>Lane 2</th><th>Ramp</th><th>Done</th><th>What just happened</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>&#9679;</td><td></td><td>&#9679;&#9679; &#9679;&#9679;&#9679;</td><td></td><td>Lift raises one-dot. <span class="word">running</span></td></tr>
+          <tr class="key"><td>2</td><td>&#9679;&#9679;</td><td></td><td>&#9679;&#9679;&#9679; &#9679;</td><td></td><td>One-dot <span class="word">await sleep(0)</span>: it steps off to the back of the ramp. Lift raises two-dot. This is the only reason two-dot runs before one-dot is done. This is the beat to stare at.</td></tr>
+          <tr><td>3</td><td>&#9679;&#9679;&#9679;</td><td></td><td>&#9679; &#9679;&#9679;</td><td></td><td>Two-dot yields. Lift raises three-dot.</td></tr>
+          <tr><td>4</td><td>&#9679;</td><td></td><td>&#9679;&#9679; &#9679;&#9679;&#9679;</td><td></td><td>Three-dot yields. Lift raises one-dot, back at its mark, for its last two ticks.</td></tr>
+          <tr><td>5</td><td>&#9679;</td><td></td><td>&#9679;&#9679; &#9679;&#9679;&#9679;</td><td></td><td>One-dot keeps computing.</td></tr>
+          <tr><td>6</td><td>&#9679;&#9679;</td><td></td><td>&#9679;&#9679;&#9679;</td><td>&#9679;</td><td>One-dot <span class="word">done</span>. Lift raises two-dot, back at its mark.</td></tr>
+          <tr><td>7</td><td>&#9679;&#9679;</td><td></td><td>&#9679;&#9679;&#9679;</td><td>&#9679;</td><td>Two-dot keeps computing.</td></tr>
+          <tr><td>8</td><td>&#9679;&#9679;&#9679;</td><td></td><td></td><td>&#9679; &#9679;&#9679;</td><td>Two-dot <span class="word">done</span>. Lift raises three-dot, back at its mark.</td></tr>
+          <tr><td>9</td><td>&#9679;&#9679;&#9679;</td><td></td><td></td><td>&#9679; &#9679;&#9679;</td><td>Three-dot keeps computing.</td></tr>
+          <tr><td>10</td><td></td><td></td><td>&#9679; &#9679;&#9679; &#9679;&#9679;&#9679;</td><td></td><td>Three-dot <span class="word">done</span>. The tray tips. Three marbles are created. Loop.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Python threads, two lanes and a padlock</h3>
+    <div class="tablewrap">
+      <table class="beats">
+        <thead><tr><th>Tick</th><th>Lane 1</th><th>Lane 2</th><th>Ramp</th><th>Done</th><th>What just happened</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>&#9679;</td><td>&#9679;&#9679; <i>gate</i></td><td>&#9679;&#9679;&#9679;</td><td></td><td>Lift raises one-dot to lane 1 and two-dot to lane 2. One-dot takes the GIL. Two-dot is on a core and cannot move.</td></tr>
+          <tr class="key"><td>2</td><td>&#9679;&#9679;&#9679; <i>gate</i></td><td>&#9679;&#9679;</td><td>&#9679;</td><td></td><td>One-dot <span class="word">sleep(0)</span>: it drops the GIL and steps off to the back of the ramp. Two-dot takes the GIL and moves. Lift raises three-dot to lane 1, at the gate. The claw stays up: it would have done this a tick later. This is the beat to stare at.</td></tr>
+          <tr><td>3</td><td>&#9679;&#9679;&#9679;</td><td>&#9679; <i>gate</i></td><td>&#9679;&#9679;</td><td></td><td>Two-dot yields. Three-dot takes the GIL. Lift raises one-dot to lane 2, back at its mark, where it stands.</td></tr>
+          <tr><td>4</td><td>&#9679;&#9679; <i>gate</i></td><td>&#9679;</td><td>&#9679;&#9679;&#9679;</td><td></td><td>Three-dot yields. One-dot takes the GIL for its last two ticks. Lift raises two-dot to lane 1, back at its mark.</td></tr>
+          <tr><td>5</td><td>&#9679;&#9679; <i>gate</i></td><td>&#9679;</td><td>&#9679;&#9679;&#9679;</td><td></td><td>One-dot keeps computing. Two-dot stands at the gate.</td></tr>
+          <tr><td>6</td><td>&#9679;&#9679;</td><td>&#9679;&#9679;&#9679; <i>gate</i></td><td></td><td>&#9679;</td><td>One-dot <span class="word">exits</span>. Two-dot takes the GIL. Lift raises three-dot to lane 2, back at its mark.</td></tr>
+          <tr><td>7</td><td>&#9679;&#9679;</td><td>&#9679;&#9679;&#9679; <i>gate</i></td><td></td><td>&#9679;</td><td>Two-dot keeps computing.</td></tr>
+          <tr><td>8</td><td></td><td>&#9679;&#9679;&#9679;</td><td></td><td>&#9679; &#9679;&#9679;</td><td>Two-dot <span class="word">exits</span>. Three-dot takes the GIL. Lane 1 is empty and no marble is left to fill it.</td></tr>
+          <tr><td>9</td><td></td><td>&#9679;&#9679;&#9679;</td><td></td><td>&#9679; &#9679;&#9679;</td><td>Three-dot keeps computing.</td></tr>
+          <tr><td>10</td><td></td><td></td><td>&#9679; &#9679;&#9679; &#9679;&#9679;&#9679;</td><td></td><td>Three-dot <span class="word">exits</span>. The tray tips. Three marbles are created. Loop.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Two lanes, with a claw or without: Go, Python free-threaded, Python multiprocessing, Rust tokio</h3>
+    <div class="tablewrap">
+      <table class="beats">
+        <thead><tr><th>Tick</th><th>Lane 1</th><th>Lane 2</th><th>Ramp</th><th>Done</th><th>What just happened</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>&#9679;</td><td>&#9679;&#9679;</td><td>&#9679;&#9679;&#9679;</td><td></td><td>Lift raises one-dot to lane 1 and two-dot to lane 2. Both moving.</td></tr>
+          <tr class="key"><td>2</td><td>&#9679;&#9679;&#9679;</td><td>&#9679;</td><td>&#9679;&#9679;</td><td></td><td>One-dot and two-dot both yield and go to the back of the ramp. Lift raises three-dot to lane 1 and one-dot to lane 2, back at its mark. Under tokio this is the tick where the third task gets a worker. This is the beat to stare at.</td></tr>
+          <tr><td>3</td><td>&#9679;&#9679;</td><td>&#9679;</td><td>&#9679;&#9679;&#9679;</td><td></td><td>Three-dot yields. Lift raises two-dot to lane 1, back at its mark. One-dot keeps computing.</td></tr>
+          <tr><td>4</td><td>&#9679;&#9679;</td><td>&#9679;&#9679;&#9679;</td><td></td><td>&#9679;</td><td>One-dot is done. Lift raises three-dot to lane 2, back at its mark.</td></tr>
+          <tr><td>5</td><td></td><td>&#9679;&#9679;&#9679;</td><td></td><td>&#9679; &#9679;&#9679;</td><td>Two-dot is done. Three-dot keeps computing.</td></tr>
+          <tr><td>6</td><td></td><td></td><td>&#9679; &#9679;&#9679; &#9679;&#9679;&#9679;</td><td></td><td>Three-dot is done. The tray tips. Three marbles are created. Loop.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Three things fall out of the derivation. The claw never fires in any variant, because a stint of one tick and a stint of two never reach the quantum with someone waiting. Asyncio and threads keep their ten-tick cycles, so yielding did not make either faster, but every marble has moved by tick three, which is what a yield is for. And tokio drops from seven ticks to six: in Truly parallel the third task waited until both workers were free, and here the yields hand it a worker at tick two.</p>
+  </section>
+
+  <section>
+    <h2>Morph rules</h2>
+    <p>The same as Truly parallel. Toggling a variant changes the rules and the scene continues from its current state. The yield point does not move, and a marble already on the ramp keeps its mark.</p>
+    <ul>
+      <li>Threads to free-threaded. The padlock vanishes and the marble at the gate moves. The claw stays up either way.</li>
+      <li>Any two-lane variant to asyncio. Lane two goes dashed and its marble rolls back to the front of the ramp, keeping its mark.</li>
+      <li>Claw appears or vanishes. Nothing visible changes in this scene, and that is the point. The legend says so.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Timing and rhythm</h2>
+    <div class="pair">
+      <div>
+        <h3>The yield</h3>
+        <p>The marble reaches the yield point at the end of its first tick and steps straight off during the movement window: down to the ramp, then along it to the back. No claw, no cable. It leaves under its own power.</p>
+      </div>
+      <div>
+        <h3>The cycle</h3>
+        <p>Fourteen seconds under threads and asyncio, eight and a half under the rest. The tokio cycle is a tick shorter than in Truly parallel, and the schedule panel should make that visible next to the padlock schedule that did not change.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Deliberately left out</h2>
+    <ul>
+      <li>No waiting. A yield has nothing to wait for. The moment it did, it would be a trapdoor and we would be in Waiting on I/O.</li>
+      <li>No yield that is refused. In every runtime here, a yield goes to the back of the queue and the runtime picks the next marble. Whether the yielding marble might be picked again at once, when nothing else is runnable, is true but not drawn: the ramp is never empty when a marble yields.</li>
+      <li>No cooperative budget. Tokio makes its own resources yield after a budget of operations, which is a yield the task did not write. It belongs with the claw, as a runtime doing the polite thing for you, and it is not drawn.</li>
+      <li>No cost of the yield itself. Real yields cost a context switch, a trip through a queue, and cache. The scene charges only the wait for a lane.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Calls made</h2>
+    <ul>
+      <li>The yield goes to the back of the ramp, like a preempted marble, and the marble comes back to its mark. The two events look alike on purpose: a yield is a preemption the marble chose.</li>
+      <li>The claw is drawn and never fires. Its legend text says why. Removing it would hide the contrast the scene exists to show.</li>
+      <li>The skeleton yields after one tick, before the two-tick quantum, so the yield is always earlier than the claw would have been. A yield at the quantum would make the two coincide and teach nothing.</li>
+      <li>Schedules whose beat tables come out identical are shown once in the panel, with both labels, so "two lanes, no claw" and "two lanes and a claw" read as one row here. The manifest keeps them separate so the rules stay honest.</li>
+    </ul>
+  </section>
+
+  <footer>Designed on paper on 2026-09-05. The skeleton, the Truly parallel rules, and the vocabulary are the contract; how the trace is computed can change.</footer>
+</main>
